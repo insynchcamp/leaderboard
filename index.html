@@ -265,9 +265,21 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .swatch:hover{transform:scale(1.1);}
 .swatch.selected{border-color:var(--teal);box-shadow:0 0 0 2px rgba(46,230,200,0.3);}
 .option-tile-row{display:flex;gap:8px;flex-wrap:wrap;}
-.option-tile{width:54px;height:54px;border-radius:12px;background:var(--bg-card-l);border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all 0.15s;flex-shrink:0;}
-.option-tile:hover{border-color:rgba(46,230,200,0.4);}
-.option-tile.selected{border-color:var(--teal);background:rgba(46,230,200,0.1);}
+.option-tile{display:flex;flex-direction:column;align-items:center;gap:4px;width:62px;}
+.option-tile-inner{width:54px;height:54px;border-radius:12px;background:var(--bg-card-l);border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all 0.15s;flex-shrink:0;}
+.option-tile-inner:hover{border-color:rgba(46,230,200,0.4);}
+.option-tile-inner.selected{border-color:var(--teal);background:rgba(46,230,200,0.1);}
+.option-tile-label{font-size:8px;color:var(--ink-faint);text-align:center;line-height:1.2;font-weight:700;}
+
+/* Logo choice picker */
+.logo-choice-row{display:flex;gap:12px;flex-wrap:wrap;}
+.logo-choice-tile{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:8px;border-radius:14px;border:2px solid var(--border);transition:all 0.15s;width:84px;}
+.logo-choice-tile:hover{border-color:rgba(46,230,200,0.4);}
+.logo-choice-tile.selected{border-color:var(--teal);background:rgba(46,230,200,0.08);}
+.logo-choice-tile.disabled{opacity:0.4;cursor:not-allowed;}
+.logo-choice-preview{width:48px;height:48px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;overflow:hidden;font-family:'Fredoka',sans-serif;}
+.logo-choice-preview img{width:100%;height:100%;object-fit:cover;}
+.logo-choice-label{font-size:10px;font-weight:700;color:var(--ink-dim);text-align:center;}
 
 /* ══ ADMIN PAGE ══ */
 .admin-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
@@ -347,6 +359,27 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
       </div>
     </div>
     <p class="login-hint">Coaches sign in with their admin email &amp; password</p>
+  </div>
+</div>
+
+
+<div id="forcePwScreen" style="display:none;position:fixed;inset:0;z-index:1500;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(ellipse 700px 500px at 20% 10%, rgba(46,230,200,0.18), transparent), radial-gradient(ellipse 600px 500px at 90% 80%, rgba(255,107,129,0.16), transparent), var(--bg-deep);">
+  <div class="login-wrap">
+    <div class="login-brand">
+      <img src="https://i.ibb.co/4n7TcPdP/Front-in-synch.png" class="login-logo" alt="In Synch">
+      <h1>Welcome, <span id="forcePwName"></span>! 👋</h1>
+      <div class="lb-tag">Let's set up your own password</div>
+    </div>
+    <div class="login-card">
+      <p style="font-size:13px;color:var(--ink-dim);font-weight:600;margin-bottom:16px;line-height:1.6;">For security, please choose your own password to replace the temporary one your coach gave you.</p>
+      <div class="lform">
+        <div class="fld"><label>New Password</label><input type="password" id="fpw1" placeholder="Min 6 characters"></div>
+        <div class="fld"><label>Confirm Password</label><input type="password" id="fpw2" placeholder="Repeat password"></div>
+        <div class="err-msg" id="fpwErr"></div>
+        <button class="btn-login" id="fpwBtn" onclick="doForcePasswordChange()">Set New Password &amp; Continue</button>
+      </div>
+    </div>
   </div>
 </div>
 
