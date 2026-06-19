@@ -134,7 +134,7 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .nav-tab.active{background:var(--teal);color:#06281f;}
 .header-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
 .user-chip{display:flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,0.08);border:1px solid var(--border);}
-.user-chip-avatar{width:24px;height:24px;border-radius:50%;background:var(--coral);flex-shrink:0;}
+.user-chip-avatar{flex-shrink:0;display:flex;align-items:center;}
 .hdr-btn{padding:6px 10px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:9px;color:var(--ink-dim);font-size:10px;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;transition:all 0.15s;white-space:nowrap;}
 .hdr-btn:hover{background:rgba(255,255,255,0.12);color:#fff;}
 .menu-btn{display:none;flex-direction:column;gap:4px;padding:6px;cursor:pointer;border:none;background:none;}
@@ -163,9 +163,7 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .podium-slot.rank-1{order:2;}
 .podium-slot.rank-2{order:1;}
 .podium-slot.rank-3{order:3;}
-.podium-avatar-ring{width:74px;height:74px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:8px;position:relative;}
-.podium-slot.rank-1 .podium-avatar-ring{width:92px;height:92px;}
-.podium-avatar-ring svg{width:100%;height:100%;}
+.podium-avatar-ring{display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
 .podium-crown{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:26px;}
 .podium-name{font-weight:700;font-size:13px;color:#fff;text-align:center;margin-bottom:2px;}
 .podium-club{font-size:9px;color:var(--ink-faint);text-align:center;margin-bottom:6px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -186,7 +184,7 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .athlete-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
 .athlete-card{background:var(--bg-card-l);border:1px solid var(--border);border-radius:16px;padding:14px 10px;text-align:center;transition:transform 0.15s;}
 .athlete-card:hover{transform:translateY(-3px);}
-.athlete-card-avatar{width:54px;height:54px;border-radius:50%;margin:0 auto 8px;}
+.athlete-card-avatar{display:flex;justify-content:center;margin:0 auto 8px;}
 .athlete-card-name{font-weight:700;font-size:12px;color:#fff;margin-bottom:2px;}
 .athlete-card-club{font-size:9px;color:var(--ink-faint);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .athlete-card-badges{display:inline-flex;align-items:center;gap:3px;background:rgba(255,200,87,0.12);border:1px solid rgba(255,200,87,0.3);border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700;color:var(--gold);}
@@ -225,7 +223,7 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .rank-row{display:flex;align-items:center;gap:12px;background:var(--bg-card-l);border:1px solid var(--border);border-radius:14px;padding:10px 14px;}
 .rank-num{width:28px;text-align:center;font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;color:var(--ink-faint);flex-shrink:0;}
 .rank-row.is-me{border-color:var(--teal);background:rgba(46,230,200,0.08);}
-.rank-avatar{width:38px;height:38px;border-radius:50%;flex-shrink:0;}
+.rank-avatar{flex-shrink:0;}
 .rank-info{flex:1;min-width:0;}
 .rank-name{font-weight:700;font-size:13px;color:#fff;}
 .rank-club{font-size:10px;color:var(--ink-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -233,7 +231,7 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 
 /* ══ MY PROFILE PAGE ══ */
 .profile-hero{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:22px;}
-.profile-avatar-big{width:130px;height:130px;border-radius:50%;margin-bottom:14px;box-shadow:0 12px 35px rgba(46,230,200,0.18);}
+.profile-avatar-big{margin-bottom:14px;filter:drop-shadow(0 12px 35px rgba(46,230,200,0.18));}
 .profile-name{font-weight:700;font-size:22px;color:#fff;margin-bottom:3px;}
 .profile-club{font-size:13px;color:var(--ink-dim);font-weight:600;margin-bottom:14px;}
 .profile-rank-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,200,87,0.12);border:1px solid rgba(255,200,87,0.3);border-radius:20px;padding:6px 14px;font-weight:700;font-size:13px;color:var(--gold);}
@@ -253,8 +251,7 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .avatar-builder{display:grid;grid-template-columns:280px 1fr;gap:24px;}
 @media(max-width:700px){.avatar-builder{grid-template-columns:1fr;}}
 .avatar-preview-pane{display:flex;flex-direction:column;align-items:center;background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:24px;position:sticky;top:14px;align-self:start;}
-.avatar-preview-circle{width:200px;height:200px;border-radius:50%;background:var(--bg-card-l);border:4px solid var(--teal);margin-bottom:16px;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 12px 35px rgba(46,230,200,0.2);}
-.avatar-preview-circle svg{width:100%;height:100%;}
+.avatar-preview-circle{width:200px;height:200px;border-radius:50%;background:var(--bg-card-l);border:4px solid var(--teal);margin-bottom:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 35px rgba(46,230,200,0.2);}
 .btn-save-avatar{width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),var(--teal-d));color:#06281f;border:none;border-radius:13px;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;transition:all 0.2s;}
 .btn-save-avatar:hover{transform:translateY(-1px);}
 .avatar-options{display:flex;flex-direction:column;gap:18px;}
@@ -264,11 +261,12 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .swatch{width:38px;height:38px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all 0.15s;flex-shrink:0;}
 .swatch:hover{transform:scale(1.1);}
 .swatch.selected{border-color:var(--teal);box-shadow:0 0 0 2px rgba(46,230,200,0.3);}
-.option-tile-row{display:flex;gap:8px;flex-wrap:wrap;}
-.option-tile{display:flex;flex-direction:column;align-items:center;gap:4px;width:62px;}
-.option-tile-inner{width:54px;height:54px;border-radius:12px;background:var(--bg-card-l);border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all 0.15s;flex-shrink:0;}
+.option-tile-row{display:flex;gap:10px;flex-wrap:wrap;}
+.option-tile{display:flex;flex-direction:column;align-items:center;gap:4px;width:60px;}
+.option-tile-inner{width:56px;height:56px;border-radius:50%;background:var(--bg-card-l);border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all 0.15s;flex-shrink:0;overflow:hidden;}
 .option-tile-inner:hover{border-color:rgba(46,230,200,0.4);}
-.option-tile-inner.selected{border-color:var(--teal);background:rgba(46,230,200,0.1);}
+.option-tile-inner.selected{border-color:var(--teal);box-shadow:0 0 0 2px rgba(46,230,200,0.25);}
+.option-tile-inner.avatar-mini-tile img{width:100%;height:100%;object-fit:cover;}
 .option-tile-label{font-size:8px;color:var(--ink-faint);text-align:center;line-height:1.2;font-weight:700;}
 
 /* Logo choice picker */
@@ -286,7 +284,7 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .admin-subtab{padding:8px 16px;border-radius:11px;border:1px solid var(--border);background:var(--bg-card-l);color:var(--ink-dim);font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.15s;}
 .admin-subtab.active{background:var(--teal);color:#06281f;border-color:var(--teal);}
 .admin-athlete-row{display:flex;align-items:center;gap:12px;background:var(--bg-card-l);border:1px solid var(--border);border-radius:14px;padding:10px 14px;margin-bottom:8px;}
-.admin-athlete-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;}
+.admin-athlete-avatar{flex-shrink:0;}
 .admin-athlete-info{flex:1;min-width:0;}
 .admin-athlete-name{font-weight:700;font-size:13px;color:#fff;}
 .admin-athlete-club{font-size:10px;color:var(--ink-faint);}
