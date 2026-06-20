@@ -49,8 +49,8 @@
 
   --coral:#ff6b81;
   --coral-l:#ff8fa0;
-  --teal:#2ee6c8;
-  --teal-d:#1fb89e;
+  --teal:#9b30ff;
+  --teal-d:#7a1fd6;
   --sun:#ffc857;
   --sun-d:#e6a82e;
   --violet:#a78bfa;
@@ -69,7 +69,7 @@
 html,body{height:100%;}
 body{
   background:
-    radial-gradient(ellipse 900px 500px at 15% -5%, rgba(46,230,200,0.12), transparent),
+    radial-gradient(ellipse 900px 500px at 15% -5%, rgba(155,48,255,0.12), transparent),
     radial-gradient(ellipse 800px 600px at 100% 10%, rgba(255,107,129,0.1), transparent),
     var(--bg-deep);
   color:var(--ink);
@@ -90,13 +90,13 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 /* ══ LOGIN ══ */
 #loginScreen{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;
   background:
-    radial-gradient(ellipse 700px 500px at 20% 10%, rgba(46,230,200,0.18), transparent),
+    radial-gradient(ellipse 700px 500px at 20% 10%, rgba(155,48,255,0.18), transparent),
     radial-gradient(ellipse 600px 500px at 90% 80%, rgba(255,107,129,0.16), transparent),
     var(--bg-deep);
 }
 .login-wrap{width:100%;max-width:420px;padding:20px 0;}
 .login-brand{text-align:center;margin-bottom:26px;}
-.login-logo{width:84px;height:84px;border-radius:50%;object-fit:cover;margin:0 auto 14px;display:block;border:3px solid var(--teal);box-shadow:0 8px 30px rgba(46,230,200,0.3);}
+.login-logo{width:84px;height:84px;border-radius:50%;object-fit:cover;margin:0 auto 14px;display:block;border:3px solid var(--teal);box-shadow:0 8px 30px rgba(155,48,255,0.3);}
 .login-brand h1{font-weight:700;font-size:24px;color:#fff;line-height:1.2;}
 .login-brand .lb-tag{margin-top:6px;font-size:13px;color:var(--ink-dim);font-weight:600;}
 .login-card{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,0.3);}
@@ -112,13 +112,13 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .fld select option{background:#1b3270;}
 .err-msg{font-size:12px;color:#ffb4bd;background:rgba(255,107,129,0.12);border:1px solid rgba(255,107,129,0.3);border-radius:10px;padding:9px 12px;display:none;font-weight:600;}
 .err-msg.show{display:block;}
-.btn-login{width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),var(--teal-d));color:#06281f;border:none;border-radius:13px;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:15px;transition:all 0.2s;margin-top:2px;box-shadow:0 6px 18px rgba(46,230,200,0.3);}
-.btn-login:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(46,230,200,0.4);}
+.btn-login{width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),var(--teal-d));color:#06281f;border:none;border-radius:13px;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:15px;transition:all 0.2s;margin-top:2px;box-shadow:0 6px 18px rgba(155,48,255,0.3);}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(155,48,255,0.4);}
 .btn-login:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
 .login-hint{text-align:center;margin-top:14px;font-size:12px;color:var(--ink-faint);font-weight:600;}
 .forgot-pw-link{display:block;width:100%;text-align:center;background:none;border:none;color:var(--ink-faint);font-size:11px;font-weight:700;font-family:'Fredoka',sans-serif;cursor:pointer;margin-top:10px;text-decoration:underline;}
 .forgot-pw-link:hover{color:var(--teal);}
-.forgot-pw-msg{font-size:12px;color:var(--teal);background:rgba(46,230,200,0.1);border:1px solid rgba(46,230,200,0.3);border-radius:10px;padding:9px 12px;display:none;font-weight:600;text-align:center;}
+.forgot-pw-msg{font-size:12px;color:var(--teal);background:rgba(155,48,255,0.1);border:1px solid rgba(155,48,255,0.3);border-radius:10px;padding:9px 12px;display:none;font-weight:600;text-align:center;}
 .forgot-pw-msg.show{display:block;}
 
 /* ══ APP SHELL ══ */
@@ -209,6 +209,13 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .reward-card.gold{background:linear-gradient(160deg,rgba(255,200,87,0.2),rgba(255,200,87,0.04));}
 .reward-card.diamond{background:linear-gradient(160deg,rgba(125,216,255,0.2),rgba(125,216,255,0.04));}
 .reward-medal{font-size:34px;margin-bottom:6px;}
+.reward-prize-img-wrap{position:relative;width:100%;height:84px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;}
+.reward-prize-img-wrap::before{content:'';position:absolute;width:90px;height:90px;border-radius:50%;filter:blur(18px);opacity:0.55;z-index:0;}
+.reward-card.bronze .reward-prize-img-wrap::before{background:radial-gradient(circle,#c97f4a,transparent 70%);}
+.reward-card.silver .reward-prize-img-wrap::before{background:radial-gradient(circle,#dde5ef,transparent 70%);}
+.reward-card.gold .reward-prize-img-wrap::before{background:radial-gradient(circle,#ffc857,transparent 70%);}
+.reward-card.diamond .reward-prize-img-wrap::before{background:radial-gradient(circle,#7dd8ff,transparent 70%);}
+.reward-prize-img{position:relative;z-index:1;max-width:84px;max-height:84px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(255,255,255,0.25));}
 .reward-level{font-weight:700;font-size:14px;color:#fff;margin-bottom:2px;}
 .reward-badges-needed{font-size:11px;color:var(--ink-dim);font-weight:600;margin-bottom:8px;}
 .reward-prize{font-size:12px;color:var(--ink-dim);font-weight:700;line-height:1.4;}
@@ -226,9 +233,17 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 
 /* ══ FULL RANKINGS LIST ══ */
 .rankings-list{display:flex;flex-direction:column;gap:8px;}
+.rankings-filter-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.rankings-search-input{flex:1;min-width:180px;background:rgba(255,255,255,0.06);border:2px solid var(--border);border-radius:11px;color:#fff;font-family:'Fredoka',sans-serif;font-size:13px;padding:9px 14px;outline:none;transition:border-color 0.2s;}
+.rankings-search-input:focus{border-color:var(--teal);}
+.rankings-search-input::placeholder{color:var(--ink-faint);}
+.rankings-club-select{background:rgba(255,255,255,0.06);border:2px solid var(--border);border-radius:11px;color:#fff;font-family:'Fredoka',sans-serif;font-size:13px;padding:9px 14px;outline:none;cursor:pointer;min-width:140px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(255,255,255,0.4)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:34px;}
+.rankings-club-select:focus{border-color:var(--teal);}
+.rankings-club-select option{background:#1b3270;}
+.rankings-no-results{text-align:center;padding:24px;color:var(--ink-faint);font-size:12px;}
 .rank-row{display:flex;align-items:center;gap:12px;background:var(--bg-card-l);border:1px solid var(--border);border-radius:14px;padding:10px 14px;}
 .rank-num{width:28px;text-align:center;font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;color:var(--ink-faint);flex-shrink:0;}
-.rank-row.is-me{border-color:var(--teal);background:rgba(46,230,200,0.08);}
+.rank-row.is-me{border-color:var(--teal);background:rgba(155,48,255,0.08);}
 .rank-avatar{flex-shrink:0;}
 .rank-info{flex:1;min-width:0;}
 .rank-name{font-weight:700;font-size:13px;color:#fff;}
@@ -237,10 +252,12 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 
 /* ══ MY PROFILE PAGE ══ */
 .profile-hero{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:22px;}
-.profile-avatar-big{margin-bottom:14px;filter:drop-shadow(0 12px 35px rgba(46,230,200,0.18));}
+.profile-avatar-big{margin-bottom:14px;filter:drop-shadow(0 12px 35px rgba(155,48,255,0.18));}
 .profile-name{font-weight:700;font-size:22px;color:#fff;margin-bottom:3px;}
 .profile-club{font-size:13px;color:var(--ink-dim);font-weight:600;margin-bottom:14px;}
 .profile-rank-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,200,87,0.12);border:1px solid rgba(255,200,87,0.3);border-radius:20px;padding:6px 14px;font-weight:700;font-size:13px;color:var(--gold);}
+.btn-share-progress{margin-top:14px;padding:9px 18px;background:rgba(155,48,255,0.12);border:1px solid rgba(155,48,255,0.35);border-radius:20px;color:var(--teal);font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.15s;}
+.btn-share-progress:hover{background:rgba(155,48,255,0.22);}
 
 .level-progress-card{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:22px;margin-bottom:18px;}
 .level-progress-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;flex-wrap:wrap;gap:6px;}
@@ -257,7 +274,7 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .avatar-builder{display:grid;grid-template-columns:280px 1fr;gap:24px;}
 @media(max-width:700px){.avatar-builder{grid-template-columns:1fr;}.avatar-preview-pane{position:static;}}
 .avatar-preview-pane{display:flex;flex-direction:column;align-items:center;background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:24px;position:sticky;top:14px;align-self:start;}
-.avatar-preview-circle{width:200px;height:200px;border-radius:50%;background:var(--bg-card-l);border:4px solid var(--teal);margin-bottom:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 35px rgba(46,230,200,0.2);}
+.avatar-preview-circle{width:200px;height:200px;border-radius:50%;background:var(--bg-card-l);border:4px solid var(--teal);margin-bottom:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 35px rgba(155,48,255,0.2);}
 .btn-save-avatar{width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),var(--teal-d));color:#06281f;border:none;border-radius:13px;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;transition:all 0.2s;}
 .btn-save-avatar:hover{transform:translateY(-1px);}
 .avatar-options{display:flex;flex-direction:column;gap:18px;}
@@ -266,20 +283,20 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .swatch-row{display:flex;gap:8px;flex-wrap:wrap;}
 .swatch{width:38px;height:38px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all 0.15s;flex-shrink:0;}
 .swatch:hover{transform:scale(1.1);}
-.swatch.selected{border-color:var(--teal);box-shadow:0 0 0 2px rgba(46,230,200,0.3);}
+.swatch.selected{border-color:var(--teal);box-shadow:0 0 0 2px rgba(155,48,255,0.3);}
 .option-tile-row{display:flex;gap:10px;flex-wrap:wrap;}
 .option-tile{display:flex;flex-direction:column;align-items:center;gap:4px;width:60px;}
 .option-tile-inner{width:56px;height:56px;border-radius:50%;background:var(--bg-card-l);border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all 0.15s;flex-shrink:0;overflow:hidden;}
-.option-tile-inner:hover{border-color:rgba(46,230,200,0.4);}
-.option-tile-inner.selected{border-color:var(--teal);box-shadow:0 0 0 2px rgba(46,230,200,0.25);}
+.option-tile-inner:hover{border-color:rgba(155,48,255,0.4);}
+.option-tile-inner.selected{border-color:var(--teal);box-shadow:0 0 0 2px rgba(155,48,255,0.25);}
 .option-tile-inner.avatar-mini-tile img{width:100%;height:100%;object-fit:cover;}
 .option-tile-label{font-size:8px;color:var(--ink-faint);text-align:center;line-height:1.2;font-weight:700;}
 
 /* Logo choice picker */
 .logo-choice-row{display:flex;gap:12px;flex-wrap:wrap;}
 .logo-choice-tile{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:8px;border-radius:14px;border:2px solid var(--border);transition:all 0.15s;width:84px;}
-.logo-choice-tile:hover{border-color:rgba(46,230,200,0.4);}
-.logo-choice-tile.selected{border-color:var(--teal);background:rgba(46,230,200,0.08);}
+.logo-choice-tile:hover{border-color:rgba(155,48,255,0.4);}
+.logo-choice-tile.selected{border-color:var(--teal);background:rgba(155,48,255,0.08);}
 .logo-choice-tile.disabled{opacity:0.4;cursor:not-allowed;}
 .logo-choice-preview{width:48px;height:48px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;overflow:hidden;font-family:'Fredoka',sans-serif;}
 .logo-choice-preview img{width:100%;height:100%;object-fit:cover;}
@@ -296,10 +313,10 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .admin-athlete-club{font-size:10px;color:var(--ink-faint);}
 .badge-input{width:64px;background:rgba(255,255,255,0.07);border:2px solid var(--border);border-radius:9px;color:#fff;font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;padding:6px 8px;outline:none;text-align:center;}
 .badge-input:focus{border-color:var(--teal);}
-.btn-mini-save{padding:6px 12px;background:rgba(46,230,200,0.15);border:1px solid rgba(46,230,200,0.35);border-radius:8px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Fredoka',sans-serif;}
-.btn-mini-save:hover{background:rgba(46,230,200,0.25);}
+.btn-mini-save{padding:6px 12px;background:rgba(155,48,255,0.15);border:1px solid rgba(155,48,255,0.35);border-radius:8px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Fredoka',sans-serif;}
+.btn-mini-save:hover{background:rgba(155,48,255,0.25);}
 .upload-drop{border:3px dashed var(--border);border-radius:18px;padding:36px 20px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--bg-card-l);}
-.upload-drop:hover,.upload-drop.over{border-color:var(--teal);background:rgba(46,230,200,0.05);}
+.upload-drop:hover,.upload-drop.over{border-color:var(--teal);background:rgba(155,48,255,0.05);}
 .upload-drop p{font-weight:700;color:#fff;margin-bottom:4px;}
 .upload-drop small{color:var(--ink-faint);}
 .csv-preview-table{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px;}
@@ -327,12 +344,15 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 
 /* ══ LEADERBOARD EXPLAINER ══ */
 .lb-explainer{max-width:560px;margin:14px auto 0;font-size:12px;color:var(--ink-dim);line-height:1.6;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:16px;padding:14px 18px;}
+.coach-announcement{display:flex;align-items:center;gap:10px;max-width:1100px;margin:0 auto 18px;background:linear-gradient(90deg,rgba(155,48,255,0.18),rgba(155,48,255,0.06));border:1px solid rgba(155,48,255,0.35);border-radius:14px;padding:12px 18px;}
+.coach-announcement-icon{font-size:18px;flex-shrink:0;}
+.coach-announcement-text{font-size:13px;font-weight:600;color:#fff;line-height:1.5;}
 
 /* ══ ATHLETE CARD (new labels) ══ */
 .athlete-card{cursor:pointer;}
 .athlete-card-country{font-size:10px;color:var(--ink-faint);margin-bottom:3px;font-weight:600;}
 .athlete-card-level{font-size:10px;color:var(--ink-dim);font-weight:700;margin-bottom:4px;}
-.athlete-card-rising{display:inline-flex;align-items:center;gap:3px;background:rgba(46,230,200,0.12);border:1px solid rgba(46,230,200,0.3);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;color:var(--teal);margin-bottom:5px;}
+.athlete-card-rising{display:inline-flex;align-items:center;gap:3px;background:rgba(155,48,255,0.12);border:1px solid rgba(155,48,255,0.3);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;color:var(--teal);margin-bottom:5px;}
 .athlete-card-badges{font-size:11px;font-weight:700;color:var(--gold);}
 .rank-row{cursor:pointer;}
 
@@ -362,7 +382,7 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .camp-entry-info{flex:1;min-width:0;}
 .camp-entry-date{font-size:10px;color:var(--ink-faint);font-weight:700;}
 .camp-entry-name{font-size:12px;color:#fff;font-weight:600;}
-.ad-total-row{text-align:center;background:rgba(46,230,200,0.08);border:1px solid rgba(46,230,200,0.25);border-radius:12px;padding:10px;font-weight:700;font-size:14px;color:var(--teal);}
+.ad-total-row{text-align:center;background:rgba(155,48,255,0.08);border:1px solid rgba(155,48,255,0.25);border-radius:12px;padding:10px;font-weight:700;font-size:14px;color:var(--teal);}
 
 /* ══ CLUB DETAIL MODAL ══ */
 #clubDetailModal .modal{padding:26px 22px 22px;position:relative;}
@@ -400,6 +420,23 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
   .modal{padding:18px;max-height:85vh;}
   #athleteDetailModal .modal,#clubDetailModal .modal{padding:20px 16px 16px;}
   .lb-explainer{padding:12px 14px;font-size:11px;}
+}
+
+/* ══ LEVEL UP CELEBRATION ══ */
+.level-up-overlay{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;background:rgba(13,27,62,0);transition:background 0.3s;padding:20px;}
+.level-up-overlay.show{background:rgba(13,27,62,0.82);}
+.level-up-card{background:var(--bg-card);border:2px solid var(--teal);border-radius:24px;padding:36px 30px;text-align:center;max-width:340px;width:100%;box-shadow:0 20px 60px rgba(155,48,255,0.4);transform:scale(0.85);opacity:0;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);position:relative;z-index:2;}
+.level-up-overlay.show .level-up-card{transform:scale(1);opacity:1;}
+.level-up-medal{font-size:64px;margin-bottom:10px;animation:levelUpBounce 0.6s ease;}
+@keyframes levelUpBounce{0%{transform:scale(0);}60%{transform:scale(1.2);}100%{transform:scale(1);}}
+.level-up-title{font-family:'Fredoka',sans-serif;font-weight:700;font-size:26px;color:#fff;margin-bottom:6px;}
+.level-up-subtitle{font-size:14px;color:var(--ink-dim);font-weight:600;margin-bottom:20px;}
+.level-up-subtitle span{color:var(--teal);font-weight:700;}
+.confetti-container{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1;}
+.confetti-piece{position:absolute;top:-20px;opacity:0.9;animation:confettiFall linear forwards;}
+@keyframes confettiFall{
+  0%{transform:translateY(0) rotate(0deg);opacity:1;}
+  100%{transform:translateY(110vh) rotate(720deg);opacity:0.3;}
 }
 @media(max-width:480px){
   .podium-wrap{gap:6px;}
@@ -459,7 +496,7 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 
 
 <div id="forcePwScreen" style="display:none;position:fixed;inset:0;z-index:1500;align-items:center;justify-content:center;padding:20px;
-  background:radial-gradient(ellipse 700px 500px at 20% 10%, rgba(46,230,200,0.18), transparent), radial-gradient(ellipse 600px 500px at 90% 80%, rgba(255,107,129,0.16), transparent), var(--bg-deep);">
+  background:radial-gradient(ellipse 700px 500px at 20% 10%, rgba(155,48,255,0.18), transparent), radial-gradient(ellipse 600px 500px at 90% 80%, rgba(255,107,129,0.16), transparent), var(--bg-deep);">
   <div class="login-wrap">
     <div class="login-brand">
       <img src="https://i.ibb.co/4n7TcPdP/Front-in-synch.png" class="login-logo" alt="In Synch">
@@ -534,6 +571,31 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
   </div>
 </div>
 
+<!-- SHARE CARD MODAL -->
+<div class="bkdrop" id="shareCardModal">
+  <div class="modal" style="max-width:420px;">
+    <button class="modal-close-btn" onclick="closeModal('shareCardModal')">&times;</button>
+    <h3 style="margin-bottom:14px;">📤 Share My Progress</h3>
+    <div id="shareCardCanvasWrap"></div>
+    <p style="font-size:11px;color:var(--ink-faint);margin-top:12px;text-align:center;">Save this image and send it to family and friends, or post it to celebrate your progress!</p>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('shareCardModal')">Close</button>
+      <button class="btn-confirm" id="btnDownloadShareCard">⬇️ Download Image</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEVEL UP CELEBRATION -->
+<div id="levelUpOverlay" class="level-up-overlay">
+  <div id="confettiContainer" class="confetti-container"></div>
+  <div class="level-up-card">
+    <div class="level-up-medal" id="levelUpMedal">🥇</div>
+    <div class="level-up-title">Level Up!</div>
+    <div class="level-up-subtitle">You've reached <span id="levelUpLevelName">Gold</span> level!</div>
+    <button class="btn-login" onclick="closeLevelUpCelebration()">Awesome!</button>
+  </div>
+</div>
+
 <!-- ATHLETE DETAIL MODAL -->
 <div class="bkdrop" id="athleteDetailModal">
   <div class="modal" style="max-width:440px;"></div>
@@ -544,6 +606,6 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
   <div class="modal" style="max-width:480px;"></div>
 </div>
 
-<script src="lb-app.js?v=15"></script>
+<script src="lb-app.js?v=17"></script>
 </body>
 </html>
