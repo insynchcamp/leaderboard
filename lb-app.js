@@ -79,7 +79,7 @@ const EXPRESSIONS = [
   {id:'cool',    mouth:'smile',     eyes:'wink',      eyebrow:'upDown',        label:'Cool'},
   {id:'laugh',   mouth:'disbelief', eyes:'squint',    eyebrow:'defaultNatural',label:'Laughing'},
   {id:'serious', mouth:'serious',   eyes:'default',   eyebrow:'sadConcerned',  label:'Focused'},
-  {id:'cheeky',  mouth:'grimace',   eyes:'surprised', eyebrow:'up',            label:'Cheeky'},
+  {id:'cheeky',  mouth:'grimace',   eyes:'surprised', eyebrow:'upDown',        label:'Cheeky'},
 ];
 
 const ACCESSORIES = [
@@ -632,11 +632,11 @@ function miniAvatarPreviewUrl(overrides){
 function buildAvatarOptionPickers(){
   // Skin tone — small live-preview face swatches
   const skinEl = document.getElementById('skinSwatches');
-  if(skinEl) skinEl.innerHTML = SKIN_TONES.map(s=>`<div class="swatch ${curAvatarDraft.skin===s.id?'selected':''}" style="background:${s.hex}" onclick="updateAvatarField('skin','${s.id}')" title="${s.id}"></div>`).join('');
+  if(skinEl) skinEl.innerHTML = SKIN_TONES.map(s=>`<div class="swatch ${curAvatarDraft.skin===s.id?'selected':''}" style="background:#${s.hex}" onclick="updateAvatarField('skin','${s.id}')" title="${s.id}"></div>`).join('');
 
   // Hair colour swatches
   const hairColorEl = document.getElementById('hairColorSwatches');
-  if(hairColorEl) hairColorEl.innerHTML = HAIR_COLORS.map(c=>`<div class="swatch ${curAvatarDraft.hairColor===c.id?'selected':''}" style="background:${c.hex}" onclick="updateAvatarField('hairColor','${c.id}')" title="${c.id}"></div>`).join('');
+  if(hairColorEl) hairColorEl.innerHTML = HAIR_COLORS.map(c=>`<div class="swatch ${curAvatarDraft.hairColor===c.id?'selected':''}" style="background:#${c.hex}" onclick="updateAvatarField('hairColor','${c.id}')" title="${c.id}"></div>`).join('');
 
   // Hair style — mini avatar previews
   const hairStyleEl = document.getElementById('hairStyleTiles');
@@ -676,7 +676,7 @@ function buildAvatarOptionPickers(){
 
   // Sweatshirt colour swatches
   const clothEl = document.getElementById('clothingColorSwatches');
-  if(clothEl) clothEl.innerHTML = CLOTHING_COLORS.map(c=>`<div class="swatch ${curAvatarDraft.clothingColor===c.id?'selected':''}" style="background:${c.hex};border:${c.hex==='#FFFFFF'?'2px solid #ccc':'3px solid transparent'}" onclick="updateAvatarField('clothingColor','${c.id}')" title="${c.id}"></div>`).join('');
+  if(clothEl) clothEl.innerHTML = CLOTHING_COLORS.map(c=>`<div class="swatch ${curAvatarDraft.clothingColor===c.id?'selected':''}" style="background:#${c.hex};border:${c.hex==='FFFFFF'?'2px solid #ccc':'3px solid transparent'}" onclick="updateAvatarField('clothingColor','${c.id}')" title="${c.id}"></div>`).join('');
 
   // Logo choice
   const logoEl = document.getElementById('logoChoiceRow');
