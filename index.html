@@ -310,9 +310,67 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .modal-acts{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
 .btn-cancel{padding:9px 16px;background:rgba(255,255,255,0.07);color:var(--ink-dim);border:1px solid var(--border);border-radius:11px;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;}
 .btn-confirm{padding:9px 18px;background:var(--teal);color:#06281f;border:none;border-radius:11px;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;}
+.modal-close-btn{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;color:var(--ink-dim);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;}
+.modal-close-btn:hover{background:rgba(255,255,255,0.15);color:#fff;}
+#signInModal .modal{position:relative;}
+.hdr-btn-signin{background:var(--teal);color:#06281f;border-color:var(--teal);font-weight:700;}
+.hdr-btn-signin:hover{background:#26c9ae;}
 
 .empty-st{text-align:center;padding:40px 20px;color:var(--ink-faint);}
 .empty-st .emoji{font-size:34px;margin-bottom:10px;}
+
+/* ══ LEADERBOARD EXPLAINER ══ */
+.lb-explainer{max-width:560px;margin:14px auto 0;font-size:12px;color:var(--ink-dim);line-height:1.6;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:16px;padding:14px 18px;}
+
+/* ══ ATHLETE CARD (new labels) ══ */
+.athlete-card{cursor:pointer;}
+.athlete-card-country{font-size:10px;color:var(--ink-faint);margin-bottom:3px;font-weight:600;}
+.athlete-card-level{font-size:10px;color:var(--ink-dim);font-weight:700;margin-bottom:4px;}
+.athlete-card-badges{font-size:11px;font-weight:700;color:var(--gold);}
+.rank-row{cursor:pointer;}
+
+/* ══ ATHLETE DETAIL MODAL ══ */
+#athleteDetailModal .modal{padding:26px 22px 22px;position:relative;}
+.ad-header{text-align:center;margin-bottom:18px;}
+.ad-avatar{display:flex;justify-content:center;margin-bottom:10px;}
+.ad-name{font-weight:700;font-size:19px;color:#fff;margin-bottom:3px;}
+.ad-club{font-size:12px;color:var(--ink-dim);font-weight:600;margin-bottom:3px;}
+.ad-country{font-size:11px;color:var(--ink-faint);font-weight:600;margin-bottom:8px;}
+.ad-level-pill{display:inline-block;background:rgba(255,200,87,0.12);border:1px solid rgba(255,200,87,0.3);border-radius:20px;padding:5px 14px;font-weight:700;font-size:12px;color:var(--gold);}
+.ad-progress-section{background:var(--bg-card-l);border-radius:14px;padding:14px 16px;margin-bottom:16px;}
+.ad-progress-hdr{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--ink-dim);margin-bottom:8px;}
+.ad-progress-count{color:var(--teal);}
+.ad-section{margin-bottom:16px;}
+.ad-section-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:10px;}
+.ad-rewards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.ad-reward-pill{display:flex;align-items:center;gap:7px;background:var(--bg-card-l);border:1px solid var(--border);border-radius:12px;padding:8px 10px;}
+.ad-reward-pill.locked{opacity:0.45;}
+.ad-reward-medal{font-size:16px;}
+.ad-reward-label{font-size:11px;font-weight:700;color:#fff;flex:1;}
+.ad-reward-check{color:var(--teal);font-weight:700;}
+.ad-reward-need{font-size:9px;color:var(--ink-faint);white-space:nowrap;}
+.ad-camp-list{display:flex;flex-direction:column;gap:7px;max-height:200px;overflow-y:auto;}
+.camp-entry-row{display:flex;align-items:center;gap:10px;background:var(--bg-card-l);border:1px solid var(--border);border-radius:11px;padding:9px 12px;}
+.camp-entry-stars{font-family:'Fredoka',sans-serif;font-weight:700;color:var(--gold);font-size:13px;white-space:nowrap;}
+.camp-entry-info{flex:1;min-width:0;}
+.camp-entry-date{font-size:10px;color:var(--ink-faint);font-weight:700;}
+.camp-entry-name{font-size:12px;color:#fff;font-weight:600;}
+.ad-total-row{text-align:center;background:rgba(46,230,200,0.08);border:1px solid rgba(46,230,200,0.25);border-radius:12px;padding:10px;font-weight:700;font-size:14px;color:var(--teal);}
+
+/* ══ CLUB DETAIL MODAL ══ */
+#clubDetailModal .modal{padding:26px 22px 22px;position:relative;}
+.club-rank-row{cursor:pointer;}
+.cd-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.cd-logo{width:54px;height:54px;border-radius:12px;object-fit:cover;background:var(--bg-card-l);flex-shrink:0;}
+.cd-logo-placeholder{width:54px;height:54px;border-radius:12px;background:var(--bg-card-l);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.cd-name{font-weight:700;font-size:18px;color:#fff;}
+.cd-country{font-size:12px;color:var(--ink-dim);font-weight:600;}
+.cd-website-link{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--teal);text-decoration:none;font-weight:700;margin-top:4px;}
+.cd-total-row{text-align:center;background:rgba(255,200,87,0.1);border:1px solid rgba(255,200,87,0.3);border-radius:12px;padding:10px;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:16px;}
+.cd-athlete-list{display:flex;flex-direction:column;gap:8px;}
+.cd-athlete-row{display:flex;align-items:center;gap:10px;background:var(--bg-card-l);border:1px solid var(--border);border-radius:12px;padding:9px 12px;}
+.cd-athlete-name{font-size:12px;font-weight:700;color:#fff;flex:1;}
+.cd-athlete-badges{font-family:'Fredoka',sans-serif;font-weight:700;color:var(--gold);font-size:12px;}
 
 @media(max-width:768px){
   .nav-tabs{display:none;}
@@ -329,34 +387,37 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
   <p>Loading leaderboard...</p>
 </div>
 
-<div id="loginScreen">
-  <div class="login-wrap">
-    <div class="login-brand">
-      <img src="https://i.ibb.co/4n7TcPdP/Front-in-synch.png" class="login-logo" alt="In Synch">
-      <h1>In Synch Camp</h1>
-      <div class="lb-tag">🏆 2026 Badge Leaderboard</div>
+<div class="bkdrop" id="signInModal">
+  <div class="modal" style="max-width:430px;padding:0;overflow:hidden;">
+    <button class="modal-close-btn" onclick="closeModal('signInModal')">&times;</button>
+    <div class="login-wrap" style="padding:28px 26px;">
+      <div class="login-brand">
+        <img src="https://i.ibb.co/4n7TcPdP/Front-in-synch.png" class="login-logo" alt="In Synch">
+        <h1>In Synch Camp</h1>
+        <div class="lb-tag">🏆 2026 Badge Leaderboard</div>
+      </div>
+      <div class="login-card" style="background:none;border:none;padding:0;box-shadow:none;">
+        <div class="tsw">
+          <button class="tsw-btn active" id="tabSI" onclick="switchAuthTab('signin')">Sign In</button>
+          <button class="tsw-btn" id="tabSU" onclick="switchAuthTab('signup')">Create Account</button>
+        </div>
+        <div class="lform" id="siForm">
+          <div class="fld"><label>Email</label><input type="email" id="siEmail" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+          <div class="fld"><label>Password</label><input type="password" id="siPw" placeholder="Password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+          <div class="err-msg" id="siErr"></div>
+          <button class="btn-login" id="siBtn" onclick="doSignIn()">Sign In</button>
+        </div>
+        <div class="lform" id="suForm" style="display:none">
+          <div class="fld"><label>Your Name</label><input type="text" id="suName" placeholder="First name or full name"></div>
+          <div class="fld"><label>Club</label><input type="text" id="suClub" placeholder="Your swimming club"></div>
+          <div class="fld"><label>Email</label><input type="email" id="suEmail" placeholder="your@email.com"></div>
+          <div class="fld"><label>Password</label><input type="password" id="suPw" placeholder="Min 6 characters"></div>
+          <div class="err-msg" id="suErr"></div>
+          <button class="btn-login" id="suBtn" onclick="doSignUp()">Create Account</button>
+        </div>
+      </div>
+      <p class="login-hint">Coaches sign in with their admin email &amp; password</p>
     </div>
-    <div class="login-card">
-      <div class="tsw">
-        <button class="tsw-btn active" id="tabSI" onclick="switchAuthTab('signin')">Sign In</button>
-        <button class="tsw-btn" id="tabSU" onclick="switchAuthTab('signup')">Create Account</button>
-      </div>
-      <div class="lform" id="siForm">
-        <div class="fld"><label>Email</label><input type="email" id="siEmail" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doSignIn()"></div>
-        <div class="fld"><label>Password</label><input type="password" id="siPw" placeholder="Password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
-        <div class="err-msg" id="siErr"></div>
-        <button class="btn-login" id="siBtn" onclick="doSignIn()">Sign In</button>
-      </div>
-      <div class="lform" id="suForm" style="display:none">
-        <div class="fld"><label>Your Name</label><input type="text" id="suName" placeholder="First name or full name"></div>
-        <div class="fld"><label>Club</label><input type="text" id="suClub" placeholder="Your swimming club"></div>
-        <div class="fld"><label>Email</label><input type="email" id="suEmail" placeholder="your@email.com"></div>
-        <div class="fld"><label>Password</label><input type="password" id="suPw" placeholder="Min 6 characters"></div>
-        <div class="err-msg" id="suErr"></div>
-        <button class="btn-login" id="suBtn" onclick="doSignUp()">Create Account</button>
-      </div>
-    </div>
-    <p class="login-hint">Coaches sign in with their admin email &amp; password</p>
   </div>
 </div>
 
@@ -387,20 +448,22 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
     <div class="header-title"><span>In Synch Camp</span>Leaderboard</div>
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="showPage('leaderboard')">🏆 Leaderboard</button>
-      <button class="nav-tab" id="navProfile" onclick="showPage('profile')">😎 My Avatar</button>
+      <button class="nav-tab" id="navProfile" onclick="showPage('profile')" style="display:none">😎 My Avatar</button>
       <button class="nav-tab" id="navAdmin" onclick="showPage('admin')" style="display:none">⚙️ Admin</button>
     </div>
     <div class="header-right">
-      <div class="user-chip"><div class="user-chip-avatar" id="userChipAvatar"></div><span id="userChipName"></span></div>
-      <button class="hdr-btn" onclick="doLogout()">Sign Out</button>
+      <button class="hdr-btn hdr-btn-signin" id="signInBtn" onclick="openModal('signInModal')" style="display:inline-flex">👤 Sign In</button>
+      <div class="user-chip" id="userChip" style="display:none"><div class="user-chip-avatar" id="userChipAvatar"></div><span id="userChipName"></span></div>
+      <button class="hdr-btn" id="signOutBtn" onclick="doLogout()" style="display:none">Sign Out</button>
       <button class="menu-btn" onclick="toggleMobMenu()"><span></span><span></span><span></span></button>
     </div>
   </header>
   <div class="mob-drawer" id="mobDrawer">
     <button class="mob-nav-item active" onclick="showPage('leaderboard');toggleMobMenu()">🏆 Leaderboard</button>
-    <button class="mob-nav-item" onclick="showPage('profile');toggleMobMenu()">😎 My Avatar</button>
+    <button class="mob-nav-item" id="mobNavProfile" onclick="showPage('profile');toggleMobMenu()" style="display:none">😎 My Avatar</button>
     <button class="mob-nav-item" id="mobNavAdmin" onclick="showPage('admin');toggleMobMenu()" style="display:none">⚙️ Admin</button>
-    <button class="mob-nav-item" onclick="doLogout()">Sign Out</button>
+    <button class="mob-nav-item" id="mobSignInBtn" onclick="openModal('signInModal');toggleMobMenu()">👤 Sign In</button>
+    <button class="mob-nav-item" id="mobSignOutBtn" onclick="doLogout()" style="display:none">Sign Out</button>
   </div>
 
   <!-- LEADERBOARD PAGE -->
@@ -435,6 +498,16 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
   </div>
 </div>
 
-<script src="lb-app.js?v=9"></script>
+<!-- ATHLETE DETAIL MODAL -->
+<div class="bkdrop" id="athleteDetailModal">
+  <div class="modal" style="max-width:440px;"></div>
+</div>
+
+<!-- CLUB DETAIL MODAL -->
+<div class="bkdrop" id="clubDetailModal">
+  <div class="modal" style="max-width:480px;"></div>
+</div>
+
+<script src="lb-app.js?v=10"></script>
 </body>
 </html>

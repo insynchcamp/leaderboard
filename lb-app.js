@@ -273,11 +273,12 @@ window.onFirebaseLogin = async function(user){
   const snap = await dbGet('lb_users/'+user.uid);
   const profile = snap.val() || {};
   if(profile.mustChangePassword){
-    document.getElementById('loginScreen').style.display = 'none';
+    closeModal('signInModal');
     showForcePasswordScreen(profile.name || user.name);
     return;
   }
 
+  closeModal('signInModal');
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'flex';
   applyRole();
@@ -317,8 +318,13 @@ window.onFirebaseLogout = function(){
   if(unsubAthletes){unsubAthletes();unsubAthletes=null;}
   if(unsubBadges){unsubBadges();unsubBadges=null;}
   document.getElementById('loadingScreen').style.display = 'none';
-  document.getElementById('appScreen').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
+  // Public mode: show the app shell directly with the leaderboard,
+  // no forced login screen. Sign in is now an optional modal.
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'flex';
+  applyRole();
+  subscribeData();
+  showPage('leaderboard');
 };
 
 function switchAuthTab(tab){
@@ -366,17 +372,28 @@ async function doChangePw(){
 }
 
 function applyRole(){
-  document.getElementById('userChipName').textContent = isAdmin ? 'Coach' : CU.name;
-  document.getElementById('userChipAvatar').innerHTML = '';
-  if(!isAdmin){
-    dbGet('lb_users/'+CU.uid).then(snap=>{
-      const av = (snap.val()||{}).avatar || DEFAULT_AVATAR;
-      document.getElementById('userChipAvatar').innerHTML = renderAvatarSVG(av, 26);
-    });
+  const signedIn = !!CU;
+  document.getElementById('signInBtn').style.display = signedIn ? 'none' : 'inline-flex';
+  document.getElementById('userChip').style.display = signedIn ? 'flex' : 'none';
+  document.getElementById('signOutBtn').style.display = signedIn ? 'inline-flex' : 'none';
+  document.getElementById('mobSignInBtn').style.display = signedIn ? 'none' : 'block';
+  document.getElementById('mobSignOutBtn').style.display = signedIn ? 'block' : 'none';
+
+  if(signedIn){
+    document.getElementById('userChipName').textContent = isAdmin ? 'Coach' : CU.name;
+    document.getElementById('userChipAvatar').innerHTML = '';
+    if(!isAdmin){
+      dbGet('lb_users/'+CU.uid).then(snap=>{
+        const av = (snap.val()||{}).avatar || DEFAULT_AVATAR;
+        document.getElementById('userChipAvatar').innerHTML = renderAvatarSVG(av, 26);
+      });
+    }
   }
-  document.getElementById('navAdmin').style.display = isAdmin ? '' : 'none';
-  document.getElementById('mobNavAdmin').style.display = isAdmin ? '' : 'none';
-  document.getElementById('navProfile').style.display = isAdmin ? 'none' : '';
+
+  document.getElementById('navAdmin').style.display = (signedIn && isAdmin) ? '' : 'none';
+  document.getElementById('mobNavAdmin').style.display = (signedIn && isAdmin) ? '' : 'none';
+  document.getElementById('navProfile').style.display = (signedIn && !isAdmin) ? '' : 'none';
+  document.getElementById('mobNavProfile').style.display = (signedIn && !isAdmin) ? 'block' : 'none';
 }
 
 function toggleMobMenu(){ document.getElementById('mobDrawer').classList.toggle('open'); }
@@ -390,11 +407,14 @@ document.addEventListener('click', e=>{
 // ═══════════════════════════════════════════════════════════════
 let unsubClubLogos = null;
 let clubLogos = {};
+let unsubClubWebsites = null;
+let clubWebsites = {};
 
 function subscribeData(){
   if(unsubAthletes) unsubAthletes();
   if(unsubBadges) unsubBadges();
   if(unsubClubLogos) unsubClubLogos();
+  if(unsubClubWebsites) unsubClubWebsites();
   unsubAthletes = dbOn('lb_users', data=>{
     athletes = data || {};
     renderCurrentPage();
@@ -407,12 +427,22 @@ function subscribeData(){
     clubLogos = data || {};
     renderCurrentPage();
   });
+  unsubClubWebsites = dbOn('lb_club_websites', data=>{
+    clubWebsites = data || {};
+    renderCurrentPage();
+  });
 }
 
 function getClubLogo(clubName){
   if(!clubName) return null;
   const key = clubName.replace(/[^a-zA-Z0-9]/g,'_');
   return clubLogos[key] || null;
+}
+
+function getClubWebsite(clubName){
+  if(!clubName) return null;
+  const key = clubName.replace(/[^a-zA-Z0-9]/g,'_');
+  return clubWebsites[key] || null;
 }
 
 let curPage = 'leaderboard';
@@ -423,6 +453,11 @@ function renderCurrentPage(){
 }
 
 function showPage(name){
+  // Guard: profile and admin require sign-in
+  if((name==='profile' || name==='admin') && !CU){
+    openModal('signInModal');
+    return;
+  }
   curPage = name;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
@@ -488,7 +523,7 @@ function renderLeaderboard(){
       <div class="podium-avatar-ring">${crown}${renderAthleteAvatar(athlete, rankNum===1?90:72)}</div>
       <div class="podium-name">${esc(displayName(athlete.name))}</div>
       <div class="podium-club">${getClubLogo(athlete.club)?`<img src="${getClubLogo(athlete.club)}" style="width:12px;height:12px;border-radius:3px;object-fit:cover;vertical-align:-2px;margin-right:3px;">`:''}${esc(athlete.club||'')}${athlete.country?` ${countryFlag(athlete.country)}`:''}</div>
-      <div class="podium-badges">🏅 ${athlete.badgeCount}</div>
+      <div class="podium-badges">🌟 ${athlete.badgeCount}</div>
       <div class="podium-base">${rankNum}</div>
     </div>`;
   };
@@ -501,12 +536,13 @@ function renderLeaderboard(){
 
   const risingHtml = risingStars.map(a=>{
     const lvl = getLevel(a.badgeCount);
-    return `<div class="athlete-card">
+    return `<div class="athlete-card" onclick="openAthleteDetail('${a.uid}')">
       <div class="athlete-card-avatar">${renderAthleteAvatar(a, 54)}</div>
       <div class="athlete-card-name">${esc(displayName(a.name))}</div>
-      <div class="athlete-card-club">${getClubLogo(a.club)?`<img src="${getClubLogo(a.club)}" style="width:11px;height:11px;border-radius:3px;object-fit:cover;vertical-align:-1px;margin-right:3px;">`:''}${esc(a.club||'')}${a.country?` ${countryFlag(a.country)}`:''}</div>
-      <div class="athlete-card-badges">🏅 ${a.badgeCount}</div>
-      <div><span class="level-tag ${lvl.key}">${lvl.label}</span></div>
+      <div class="athlete-card-club">${getClubLogo(a.club)?`<img src="${getClubLogo(a.club)}" style="width:11px;height:11px;border-radius:3px;object-fit:cover;vertical-align:-1px;margin-right:3px;">`:''}${esc(a.club||'')}</div>
+      ${a.country?`<div class="athlete-card-country">Country: ${esc(a.country)} ${countryFlag(a.country)}</div>`:''}
+      <div class="athlete-card-level">Level: ${lvl.key==='none'?'Unranked':lvl.label}</div>
+      <div class="athlete-card-badges">Total Badges: 🌟 ${a.badgeCount}</div>
     </div>`;
   }).join('');
 
@@ -523,19 +559,19 @@ function renderLeaderboard(){
     const logo = getClubLogo(c.club);
     const logoHtml = logo ? `<img src="${logo}" style="width:22px;height:22px;border-radius:5px;object-fit:cover;vertical-align:-6px;margin-right:8px;">` : '';
     const flag = countryFlag(c.country);
-    return `<tr><td><span class="club-rank-badge ${badgeClass}">${c.rank}</span></td><td>${logoHtml}${esc(c.club)}${flag?` ${flag}`:''}</td><td style="color:var(--gold);font-weight:700">${c.total}</td></tr>`;
+    return `<tr class="club-rank-row" onclick="openClubDetail('${esc(c.club).replace(/'/g,"\\'")}')"><td><span class="club-rank-badge ${badgeClass}">${c.rank}</span></td><td>${logoHtml}${esc(c.club)}${flag?` ${flag}`:''}</td><td style="color:var(--gold);font-weight:700">${c.total}</td></tr>`;
   }).join('');
 
   const fullRankingsHtml = ranked.map((a,i)=>{
     const isMe = CU && a.uid === CU.uid;
-    return `<div class="rank-row ${isMe?'is-me':''}">
+    return `<div class="rank-row ${isMe?'is-me':''}" onclick="openAthleteDetail('${a.uid}')">
       <div class="rank-num">${i+1}</div>
       <div class="rank-avatar">${renderAthleteAvatar(a, 38)}</div>
       <div class="rank-info">
         <div class="rank-name">${esc(displayName(a.name))}${isMe?' (You)':''}</div>
         <div class="rank-club">${getClubLogo(a.club)?`<img src="${getClubLogo(a.club)}" style="width:12px;height:12px;border-radius:3px;object-fit:cover;vertical-align:-2px;margin-right:3px;">`:''}${esc(a.club||'')}${a.country?` ${countryFlag(a.country)}`:''}</div>
       </div>
-      <div class="rank-badges">🏅 ${a.badgeCount}</div>
+      <div class="rank-badges">🌟 ${a.badgeCount}</div>
     </div>`;
   }).join('');
 
@@ -543,6 +579,7 @@ function renderLeaderboard(){
     <div class="lb-hero">
       <h1>🏆 In Synch <span class="accent">2026</span> Leaderboard</h1>
       <p>Track your progress, unlock rewards, and climb the rankings</p>
+      <p class="lb-explainer">Athletes earn 🌟 badges for every In Synch camp they attend throughout the year (1st January – 31st December 2026). Collect badges to climb the leaderboard, unlock Bronze, Silver, Gold and Diamond rewards, and help your club top the Club Challenge. Click on any athlete to see exactly which camps they've earned their badges at!</p>
     </div>
 
     ${podiumHtml}
@@ -596,13 +633,13 @@ async function renderProfilePage(){
       <div class="profile-avatar-big" id="profileAvatarBig">${renderAvatarSVG(curAvatarDraft, 130)}</div>
       <div class="profile-name">${esc(displayName(profile.name||CU.name))}</div>
       <div class="profile-club">${esc(profile.club||'')}</div>
-      <div class="profile-rank-pill">🏅 ${badgeCount} Badges &middot; ${lvl.label} Level</div>
+      <div class="profile-rank-pill">🌟 ${badgeCount} Badges &middot; ${lvl.label} Level</div>
     </div>
 
     <div class="level-progress-card">
       <div class="level-progress-hdr">
         <h3>Your Progress</h3>
-        <div class="level-badges-count">${badgeCount} 🏅</div>
+        <div class="level-badges-count">${badgeCount} 🌟</div>
       </div>
       <div class="level-track"><div class="level-track-fill" style="width:${trackPct}%"></div></div>
       <div class="level-markers">
@@ -820,11 +857,11 @@ function renderAdminTabContent(){
 
   else if(curAdminTab === 'import'){
     el.innerHTML = `<div class="lb-section">
-      <div class="lb-section-hdr"><h2>Import New Athletes</h2></div>
-      <p style="font-size:12px;color:var(--ink-dim);margin-bottom:14px;line-height:1.6;">Upload a CSV with columns: <strong>Name</strong>, <strong>Club</strong>, <strong>Email</strong>, and optionally <strong>Badges</strong>. An account will be created for each new athlete with the temporary password <strong style="color:var(--teal)">${TEMP_PASSWORD}</strong> — they'll be asked to set their own password the first time they log in. Athletes already registered will be skipped automatically.</p>
+      <div class="lb-section-hdr"><h2>Import Athletes &amp; Camp Records</h2></div>
+      <p style="font-size:12px;color:var(--ink-dim);margin-bottom:14px;line-height:1.6;">Upload a CSV with one row per camp attended. Columns: <strong>Name</strong>, <strong>Club</strong>, <strong>Country</strong>, <strong>Club Website</strong>, <strong>Email</strong>, <strong>Camp Date</strong>, <strong>Camp Name</strong>, <strong>Badges</strong>. If an athlete attended multiple camps, give them multiple rows with the same name &amp; email — their badges will total up automatically and each camp will show in their detail view. New accounts use the temporary password <strong style="color:var(--teal)">${TEMP_PASSWORD}</strong> and are asked to set their own password on first login. Re-uploading for an existing athlete adds the new camp entries and badges on top of what they already have.</p>
       <div class="upload-drop" id="athleteCsvDrop" onclick="document.getElementById('athleteCsvFileInput').click()" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="handleAthleteCsvDrop(event)">
         <p>📄 Click to upload or drag & drop your CSV</p>
-        <small>Columns: Name, Club, Email, Badges (optional)</small>
+        <small>Columns: Name, Club, Country, Club Website, Email, Camp Date, Camp Name, Badges</small>
         <input type="file" id="athleteCsvFileInput" accept=".csv" style="display:none" onchange="handleAthleteCsvFile(event)">
       </div>
       <div id="athleteCsvPreviewArea"></div>
@@ -833,21 +870,27 @@ function renderAdminTabContent(){
 
   else if(curAdminTab === 'logos'){
     const clubs = [...new Set(Object.values(athletes).filter(a=>a.role==='athlete').map(a=>a.club).filter(Boolean))].sort();
-    dbGet('lb_club_logos').then(snap=>{
-      const logos = snap.val() || {};
+    Promise.all([dbGet('lb_club_logos'), dbGet('lb_club_websites')]).then(([logoSnap, webSnap])=>{
+      const logos = logoSnap.val() || {};
+      const websites = webSnap.val() || {};
       el.innerHTML = `<div class="lb-section">
-        <div class="lb-section-hdr"><h2>Club Logos</h2></div>
-        <p style="font-size:12px;color:var(--ink-dim);margin-bottom:16px;line-height:1.6;">Upload a logo for each club. These appear next to club names on the leaderboard and club challenge table.</p>
+        <div class="lb-section-hdr"><h2>Club Logos &amp; Websites</h2></div>
+        <p style="font-size:12px;color:var(--ink-dim);margin-bottom:16px;line-height:1.6;">Upload a logo and add a website link for each club. These appear on the leaderboard, club challenge table, and when someone clicks into a club's detail view. Website links can also be set automatically via your spreadsheet's "Club Website" column.</p>
         ${clubs.length ? clubs.map(club=>{
           const logoKey = club.replace(/[^a-zA-Z0-9]/g,'_');
           const logoUrl = logos[logoKey];
-          return `<div class="admin-athlete-row">
+          const websiteUrl = websites[logoKey] || '';
+          return `<div class="admin-athlete-row" style="flex-wrap:wrap;">
             <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
               ${logoUrl ? `<img src="${logoUrl}" style="width:100%;height:100%;object-fit:cover;">` : '<span style="font-size:18px;opacity:0.3;">🏟️</span>'}
             </div>
             <div class="admin-athlete-info"><div class="admin-athlete-name">${esc(club)}</div></div>
             <input type="file" accept="image/*" id="logoInput_${logoKey}" style="display:none" onchange="handleClubLogoUpload('${logoKey.replace(/'/g,"\\'")}','${club.replace(/'/g,"\\'")}', this)">
-            <button class="btn-mini-save" onclick="document.getElementById('logoInput_${logoKey}').click()">${logoUrl?'Change':'Upload'}</button>
+            <button class="btn-mini-save" onclick="document.getElementById('logoInput_${logoKey}').click()">${logoUrl?'Change Logo':'Upload Logo'}</button>
+            <div style="display:flex;gap:6px;align-items:center;width:100%;margin-top:8px;">
+              <input type="text" id="websiteInput_${logoKey}" value="${esc(websiteUrl)}" placeholder="https://clubwebsite.com" style="flex:1;background:rgba(255,255,255,0.06);border:2px solid var(--border);border-radius:9px;color:#fff;font-family:'Fredoka',sans-serif;font-size:12px;padding:6px 10px;outline:none;">
+              <button class="btn-mini-save" onclick="saveClubWebsite('${logoKey.replace(/'/g,"\\'")}')">Save Link</button>
+            </div>
           </div>`;
         }).join('') : '<div class="empty-st"><div class="emoji">🏟️</div><p>No clubs yet — add athletes first.</p></div>'}
       </div>`;
@@ -866,7 +909,7 @@ function renderAdminTabContent(){
             <div class="admin-athlete-name">${esc(a.name)}</div>
             <div class="admin-athlete-club">${esc(a.email)} &middot; ${esc(a.club||'')}</div>
           </div>
-          <div style="font-weight:700;color:var(--gold)">🏅 ${a.badgeCount}</div>
+          <div style="font-weight:700;color:var(--gold)">🌟 ${a.badgeCount}</div>
         </div>
       `).join('') : `<div class="empty-st"><div class="emoji">🏊‍♀️</div><p>No athletes yet.</p></div>`}
     </div>`;
@@ -1036,9 +1079,12 @@ function parseAthleteCsv(file){
 
     const headers = parseCsvLine(lines[0]).map(normaliseHeader);
     const nameIdx = headers.findIndex(h=>h.includes('name'));
-    const clubIdx = headers.findIndex(h=>h.includes('club'));
+    const clubIdx = headers.findIndex(h=>h.includes('club') && !h.includes('website'));
     const countryIdx = headers.findIndex(h=>h.includes('country') || h.includes('nation'));
+    const websiteIdx = headers.findIndex(h=>h.includes('website') || h.includes('url'));
     const emailIdx = headers.findIndex(h=>h.includes('email') || h.includes('mail'));
+    const campDateIdx = headers.findIndex(h=>h.includes('campdate') || h.includes('date'));
+    const campNameIdx = headers.findIndex(h=>h.includes('campname') || (h.includes('camp') && !h.includes('date')));
     const badgeIdx = headers.findIndex(h=>h.includes('badge'));
 
     if(nameIdx === -1 || emailIdx === -1){
@@ -1048,18 +1094,46 @@ function parseAthleteCsv(file){
 
     const existingEmails = new Set(Object.values(athletes).map(a=>(a.email||'').toLowerCase()));
 
-    athleteCsvData = lines.slice(1).map(line=>{
+    // Parse every row as one camp-entry row
+    const rawRows = lines.slice(1).map(line=>{
       const cols = parseCsvLine(line);
-      const email = cols[emailIdx] || '';
       return {
         name: cols[nameIdx] || '',
         club: clubIdx>-1 ? (cols[clubIdx]||'') : '',
         country: countryIdx>-1 ? (cols[countryIdx]||'') : '',
-        email: email,
+        website: websiteIdx>-1 ? (cols[websiteIdx]||'') : '',
+        email: (cols[emailIdx]||'').trim(),
+        campDate: campDateIdx>-1 ? (cols[campDateIdx]||'') : '',
+        campName: campNameIdx>-1 ? (cols[campNameIdx]||'') : '',
         badges: badgeIdx>-1 ? (parseInt(cols[badgeIdx])||0) : 0,
-        alreadyExists: existingEmails.has(email.toLowerCase()),
       };
     }).filter(r=>r.name && r.email);
+
+    // Group rows by email — one athlete may have multiple camp rows
+    const grouped = {};
+    rawRows.forEach(row=>{
+      const key = row.email.toLowerCase();
+      if(!grouped[key]){
+        grouped[key] = {
+          name: row.name, club: row.club, country: row.country,
+          website: row.website, email: row.email,
+          campEntries: [], totalBadges: 0,
+        };
+      }
+      // Use the most complete club/country/website info seen across rows
+      if(row.club) grouped[key].club = row.club;
+      if(row.country) grouped[key].country = row.country;
+      if(row.website) grouped[key].website = row.website;
+      if(row.campName || row.campDate){
+        grouped[key].campEntries.push({ date: row.campDate, campName: row.campName || 'Camp', badges: row.badges });
+      }
+      grouped[key].totalBadges += row.badges;
+    });
+
+    athleteCsvData = Object.values(grouped).map(r=>({
+      ...r,
+      alreadyExists: existingEmails.has(r.email.toLowerCase()),
+    }));
 
     renderAthleteCsvPreview();
   };
@@ -1076,11 +1150,11 @@ function renderAthleteCsvPreview(){
   el.innerHTML = `
     <p style="font-size:12px;color:var(--ink-dim);margin:14px 0 6px;font-weight:700;">
       ${newCount} new account${newCount!==1?'s':''} to create
-      ${existingCount ? `&middot; ${existingCount} already exist (will be skipped)` : ''}
+      ${existingCount ? `&middot; ${existingCount} already exist (badges &amp; camp entries will still be added to their record)` : ''}
     </p>
     <div style="overflow-x:auto">
       <table class="csv-preview-table">
-        <thead><tr><th>Name</th><th>Club</th><th>Country</th><th>Email</th><th>Badges</th><th>Status</th></tr></thead>
+        <thead><tr><th>Name</th><th>Club</th><th>Country</th><th>Email</th><th>Camps</th><th>Total Badges</th><th>Status</th></tr></thead>
         <tbody>
           ${athleteCsvData.map(r=>`
             <tr>
@@ -1088,50 +1162,82 @@ function renderAthleteCsvPreview(){
               <td>${esc(r.club)}</td>
               <td>${countryFlag(r.country)} ${esc(r.country)}</td>
               <td>${esc(r.email)}</td>
-              <td>${r.badges}</td>
-              <td class="${r.alreadyExists?'csv-match-bad':'csv-match-ok'}">${r.alreadyExists?'Already exists':'✓ Will create'}</td>
+              <td>${r.campEntries.length}</td>
+              <td>${r.totalBadges}</td>
+              <td class="${r.alreadyExists?'csv-match-bad':'csv-match-ok'}">${r.alreadyExists?'Account exists — will update':'✓ Will create'}</td>
             </tr>
           `).join('')}
         </tbody>
       </table>
     </div>
-    ${newCount ? `
-      <p style="font-size:11px;color:var(--ink-faint);margin-top:12px;">All new accounts will use the temporary password <strong style="color:var(--teal)">${TEMP_PASSWORD}</strong> and will be asked to set their own password on first login.</p>
-      <button class="btn-save-avatar" style="margin-top:10px;max-width:320px;" id="btnRunAthleteImport" onclick="runAthleteImport()">Create ${newCount} Athlete Account${newCount!==1?'s':''}</button>
-      <div id="athleteImportStatus" style="margin-top:10px;font-size:12px;font-weight:700;"></div>
-    ` : ''}
+    <p style="font-size:11px;color:var(--ink-faint);margin-top:12px;">New accounts use the temporary password <strong style="color:var(--teal)">${TEMP_PASSWORD}</strong> and will be asked to set their own password on first login. Existing athletes will have these camp entries added on top of any badges they already have.</p>
+    <button class="btn-save-avatar" style="margin-top:10px;max-width:340px;" id="btnRunAthleteImport" onclick="runAthleteImport()">Import ${athleteCsvData.length} Athlete${athleteCsvData.length!==1?'s':''}</button>
+    <div id="athleteImportStatus" style="margin-top:10px;font-size:12px;font-weight:700;"></div>
   `;
 }
 
 async function runAthleteImport(){
   const btn = document.getElementById('btnRunAthleteImport');
   const statusEl = document.getElementById('athleteImportStatus');
-  const toCreate = athleteCsvData.filter(r=>!r.alreadyExists);
   btn.disabled = true;
-  btn.textContent = 'Creating accounts...';
+  btn.textContent = 'Importing...';
 
-  let created = 0, failed = [];
-  for(const row of toCreate){
+  let processed = 0, failed = [];
+  const total = athleteCsvData.length;
+
+  for(const row of athleteCsvData){
     try{
-      const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key='+window._auth.app.options.apiKey, {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ email: row.email, password: TEMP_PASSWORD, returnSecureToken: true })
-      });
-      const data = await res.json();
-      if(data.error){ failed.push(row.name + ' (' + data.error.message + ')'); continue; }
-      await dbSet('lb_users/'+data.localId, {
-        name: row.name, club: row.club, country: row.country||'', email: row.email, role: 'athlete',
-        avatar: DEFAULT_AVATAR, mustChangePassword: true, createdAt: Date.now()
-      });
-      await dbSet('lb_badges/'+data.localId, row.badges);
-      created++;
-      statusEl.textContent = `Created ${created} / ${toCreate.length}...`;
+      let uid;
+      if(row.alreadyExists){
+        // Find existing athlete by email
+        const existing = Object.entries(athletes).find(([,a])=>(a.email||'').toLowerCase()===row.email.toLowerCase());
+        uid = existing ? existing[0] : null;
+        if(!uid){ failed.push(row.name + ' (could not find existing account)'); continue; }
+      } else {
+        // Create new account
+        const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key='+window._auth.app.options.apiKey, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ email: row.email, password: TEMP_PASSWORD, returnSecureToken: true })
+        });
+        const data = await res.json();
+        if(data.error){ failed.push(row.name + ' (' + data.error.message + ')'); continue; }
+        uid = data.localId;
+        await dbSet('lb_users/'+uid, {
+          name: row.name, club: row.club, country: row.country||'', email: row.email, role: 'athlete',
+          avatar: DEFAULT_AVATAR, mustChangePassword: true, createdAt: Date.now()
+        });
+      }
+
+      // Add camp entries (each gets a unique key)
+      if(row.campEntries.length){
+        const entryUpdates = {};
+        row.campEntries.forEach(entry=>{
+          const entryId = 'entry_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+          entryUpdates[entryId] = entry;
+        });
+        await dbUpd('lb_camp_entries/'+uid, entryUpdates);
+      }
+
+      // Increment total badge count (existing + new from this import)
+      const curBadges = badges[uid] || 0;
+      await dbSet('lb_badges/'+uid, curBadges + row.totalBadges);
+
+      // Save club website if provided
+      if(row.website && row.club){
+        const logoKey = row.club.replace(/[^a-zA-Z0-9]/g,'_');
+        let url = row.website.trim();
+        if(url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+        await dbSet('lb_club_websites/'+logoKey, url);
+      }
+
+      processed++;
+      statusEl.textContent = `Processed ${processed} / ${total}...`;
     } catch(ex){
       failed.push(row.name + ' (' + ex.message + ')');
     }
   }
 
-  statusEl.innerHTML = `✅ Created ${created} account${created!==1?'s':''} successfully.` +
+  statusEl.innerHTML = `✅ Successfully processed ${processed} athlete${processed!==1?'s':''}.` +
     (failed.length ? `<br>⚠️ ${failed.length} failed: ${failed.join(', ')}` : '');
   btn.textContent = 'Done!';
   athleteCsvData = null;
@@ -1150,6 +1256,144 @@ async function handleClubLogoUpload(logoKey, clubName, inputEl){
     renderAdminTabContent();
   };
   reader.readAsDataURL(file);
+}
+
+async function saveClubWebsite(logoKey){
+  const input = document.getElementById('websiteInput_'+logoKey);
+  let url = input.value.trim();
+  if(url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+  await dbSet('lb_club_websites/'+logoKey, url || null);
+  const btn = input.nextElementSibling;
+  const orig = btn.textContent;
+  btn.textContent = '✓ Saved';
+  setTimeout(()=>{ btn.textContent = orig; }, 1500);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ATHLETE DETAIL MODAL (camp breakdown, rewards, progress)
+// ═══════════════════════════════════════════════════════════════
+async function openAthleteDetail(uid){
+  const athleteData = athletes[uid];
+  if(!athleteData) return;
+  const a = { uid, ...athleteData, badgeCount: badges[uid]||0 };
+
+  const lvl = getLevel(a.badgeCount);
+  const MAX_BADGES = 15;
+  const trackPct = Math.min(100, (a.badgeCount / MAX_BADGES) * 100);
+
+  // Fetch camp entries for this athlete
+  const snap = await dbGet('lb_camp_entries/'+uid);
+  const entriesObj = snap.val() || {};
+  const entries = Object.values(entriesObj).sort((x,y)=> new Date(x.date) - new Date(y.date));
+
+  const campListHtml = entries.length ? entries.map(e=>`
+    <div class="camp-entry-row">
+      <div class="camp-entry-stars">🌟 ${e.badges}</div>
+      <div class="camp-entry-info">
+        <div class="camp-entry-date">${formatCampDate(e.date)}</div>
+        <div class="camp-entry-name">${esc(e.campName)}</div>
+      </div>
+    </div>
+  `).join('') : `<p style="font-size:12px;color:var(--ink-faint);text-align:center;padding:16px;">No camp records found for this athlete yet.</p>`;
+
+  const rewardsHtml = REWARDS.map(r=>{
+    const achieved = a.badgeCount >= r.badges;
+    return `<div class="ad-reward-pill ${achieved?'achieved':'locked'}">
+      <span class="ad-reward-medal">${achieved?r.medal:'🔒'}</span>
+      <span class="ad-reward-label">${r.level.charAt(0).toUpperCase()+r.level.slice(1)}</span>
+      ${achieved?'<span class="ad-reward-check">✓</span>':`<span class="ad-reward-need">${r.badges} needed</span>`}
+    </div>`;
+  }).join('');
+
+  const modalEl = document.getElementById('athleteDetailModal');
+  modalEl.querySelector('.modal').innerHTML = `
+    <button class="modal-close-btn" onclick="closeModal('athleteDetailModal')">&times;</button>
+    <div class="ad-header">
+      <div class="ad-avatar">${renderAthleteAvatar(a, 86)}</div>
+      <div class="ad-name">${esc(displayName(a.name))}</div>
+      <div class="ad-club">${getClubLogo(a.club)?`<img src="${getClubLogo(a.club)}" style="width:14px;height:14px;border-radius:3px;object-fit:cover;vertical-align:-2px;margin-right:4px;">`:''}${esc(a.club||'')}</div>
+      ${a.country?`<div class="ad-country">Country: ${esc(a.country)} ${countryFlag(a.country)}</div>`:''}
+      <div class="ad-level-pill">Level: ${lvl.key==='none'?'Unranked':lvl.label}</div>
+    </div>
+
+    <div class="ad-progress-section">
+      <div class="ad-progress-hdr">
+        <span>Progress to Diamond</span>
+        <span class="ad-progress-count">${a.badgeCount} / ${MAX_BADGES} 🌟</span>
+      </div>
+      <div class="level-track"><div class="level-track-fill" style="width:${trackPct}%"></div></div>
+    </div>
+
+    <div class="ad-section">
+      <div class="ad-section-title">🏆 Rewards Achieved</div>
+      <div class="ad-rewards-grid">${rewardsHtml}</div>
+    </div>
+
+    <div class="ad-section">
+      <div class="ad-section-title">📅 Camp History</div>
+      <div class="ad-camp-list">${campListHtml}</div>
+    </div>
+
+    <div class="ad-total-row">Total Badges 🌟 ${a.badgeCount}</div>
+  `;
+
+  openModal('athleteDetailModal');
+}
+
+function formatCampDate(dateStr){
+  if(!dateStr) return '';
+  const d = new Date(dateStr);
+  if(isNaN(d.getTime())) return dateStr; // fall back to raw string if unparsable
+  return d.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CLUB DETAIL MODAL
+// ═══════════════════════════════════════════════════════════════
+function openClubDetail(clubName){
+  const clubAthletes = getRankedAthletes().filter(a => (a.club||'') === clubName);
+  if(!clubAthletes.length) return;
+
+  const total = clubAthletes.reduce((sum,a)=>sum+a.badgeCount, 0);
+  const country = clubAthletes.find(a=>a.country)?.country || '';
+  const logo = getClubLogo(clubName);
+  const website = getClubWebsite(clubName);
+
+  const sortedAthletes = [...clubAthletes].sort((a,b)=>b.badgeCount-a.badgeCount);
+
+  const athleteRowsHtml = sortedAthletes.map(a => `
+    <div class="cd-athlete-row">
+      ${renderAthleteAvatar(a, 32)}
+      <div class="cd-athlete-name">${esc(displayName(a.name))}</div>
+      <div class="cd-athlete-badges">🌟 ${a.badgeCount}</div>
+    </div>
+  `).join('');
+
+  const logoHtml = logo
+    ? `<img src="${logo}" class="cd-logo" alt="">`
+    : `<div class="cd-logo-placeholder">🏟️</div>`;
+
+  const websiteHtml = website
+    ? `<a href="${esc(website)}" target="_blank" rel="noopener" class="cd-website-link">🔗 Visit club website</a>`
+    : '';
+
+  const modalEl = document.getElementById('clubDetailModal');
+  modalEl.querySelector('.modal').innerHTML = `
+    <button class="modal-close-btn" onclick="closeModal('clubDetailModal')">&times;</button>
+    <div class="cd-header">
+      ${logoHtml}
+      <div>
+        <div class="cd-name">${esc(clubName)}</div>
+        ${country?`<div class="cd-country">${esc(country)} ${countryFlag(country)}</div>`:''}
+        ${websiteHtml}
+      </div>
+    </div>
+    <div class="cd-total-row">Total Club Badges 🌟 ${total}</div>
+    <div class="ad-section-title">Athlete Contributions</div>
+    <div class="cd-athlete-list">${athleteRowsHtml}</div>
+  `;
+
+  openModal('clubDetailModal');
 }
 
 // ═══════════════════════════════════════════════════════════════
