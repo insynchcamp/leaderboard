@@ -279,7 +279,6 @@ window.onFirebaseLogin = async function(user){
   }
 
   closeModal('signInModal');
-  document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'flex';
   applyRole();
   subscribeData();
@@ -320,7 +319,6 @@ window.onFirebaseLogout = function(){
   document.getElementById('loadingScreen').style.display = 'none';
   // Public mode: show the app shell directly with the leaderboard,
   // no forced login screen. Sign in is now an optional modal.
-  document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'flex';
   applyRole();
   subscribeData();
