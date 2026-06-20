@@ -233,7 +233,7 @@ function avatarBadgeHTML(av, size){
   const clubLogoUrl = av && av._clubLogoUrl;
   const badgeSize = Math.max(14, Math.round(size * 0.34));
   const logoUrl = (logoChoice === 'club' && clubLogoUrl) ? clubLogoUrl : INSYNCH_LOGO_URL;
-  return `<div style="position:absolute;bottom:-2px;right:-2px;width:${badgeSize}px;height:${badgeSize}px;border-radius:50%;background:#000;border:2px solid var(--bg-deep);overflow:hidden;display:flex;align-items:center;justify-content:center;">
+  return `<div style="position:absolute;bottom:-2px;right:-2px;width:${badgeSize}px;height:${badgeSize}px;border-radius:50%;background:#fff;border:2px solid var(--bg-deep);overflow:hidden;display:flex;align-items:center;justify-content:center;">
     <img src="${logoUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" alt="">
   </div>`;
 }
@@ -339,6 +339,26 @@ async function doSignIn(){
   btn.disabled=true;btn.textContent='Signing in...';
   try{await window._fbFns.signInWithEmailAndPassword(window._auth,e,p);}
   catch(ex){showErr(err,authErr(ex.code));btn.disabled=false;btn.textContent='Sign In';}
+}
+
+async function doPasswordReset(){
+  const emailInput = document.getElementById('siEmail');
+  const e = emailInput.value.trim();
+  const err = document.getElementById('siErr');
+  const msg = document.getElementById('resetMsg');
+  msg.classList.remove('show');
+  if(!e){
+    showErr(err, 'Enter your email above first, then tap "Forgot your password?"');
+    emailInput.focus();
+    return;
+  }
+  try{
+    await window._fbFns.sendPasswordResetEmail(window._auth, e);
+    msg.textContent = `✅ Password reset email sent to ${e}. Check your inbox (and spam folder).`;
+    msg.classList.add('show');
+  } catch(ex){
+    showErr(err, authErr(ex.code));
+  }
 }
 
 async function doSignUp(){
@@ -516,11 +536,10 @@ function renderLeaderboard(){
   // Podium
   const podiumSlot = (athlete, rankNum) => {
     if(!athlete) return `<div class="podium-slot rank-${rankNum} podium-empty"><div class="podium-avatar-ring"></div><div class="podium-name">—</div><div class="podium-base">${rankNum}</div></div>`;
-    const crown = rankNum===1 ? '<div class="podium-crown">👑</div>' : '';
     return `<div class="podium-slot rank-${rankNum}">
-      <div class="podium-avatar-ring">${crown}${renderAthleteAvatar(athlete, rankNum===1?90:72)}</div>
+      <div class="podium-avatar-ring">${renderAthleteAvatar(athlete, rankNum===1?90:72)}</div>
       <div class="podium-name">${esc(displayName(athlete.name))}</div>
-      <div class="podium-club">${getClubLogo(athlete.club)?`<img src="${getClubLogo(athlete.club)}" style="width:12px;height:12px;border-radius:3px;object-fit:cover;vertical-align:-2px;margin-right:3px;">`:''}${esc(athlete.club||'')}${athlete.country?` ${countryFlag(athlete.country)}`:''}</div>
+      <div class="podium-club">${getClubLogo(athlete.club)?`<span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#fff;vertical-align:-2px;margin-right:3px;overflow:hidden;"><img src="${getClubLogo(athlete.club)}" style="width:100%;height:100%;object-fit:cover;"></span>`:''}${esc(athlete.club||'')}${athlete.country?` ${countryFlag(athlete.country)}`:''}</div>
       <div class="podium-badges">🌟 ${athlete.badgeCount}</div>
       <div class="podium-base">${rankNum}</div>
     </div>`;
@@ -537,7 +556,7 @@ function renderLeaderboard(){
     return `<div class="athlete-card" onclick="openAthleteDetail('${a.uid}')">
       <div class="athlete-card-avatar">${renderAthleteAvatar(a, 54)}</div>
       <div class="athlete-card-name">${esc(displayName(a.name))}</div>
-      <div class="athlete-card-club">${getClubLogo(a.club)?`<img src="${getClubLogo(a.club)}" style="width:11px;height:11px;border-radius:3px;object-fit:cover;vertical-align:-1px;margin-right:3px;">`:''}${esc(a.club||'')}</div>
+      <div class="athlete-card-club">${getClubLogo(a.club)?`<span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#fff;vertical-align:-1px;margin-right:3px;overflow:hidden;"><img src="${getClubLogo(a.club)}" style="width:100%;height:100%;object-fit:cover;"></span>`:''}${esc(a.club||'')}</div>
       ${a.country?`<div class="athlete-card-country">Country: ${esc(a.country)} ${countryFlag(a.country)}</div>`:''}
       <div class="athlete-card-level">Level: ${lvl.key==='none'?'Unranked':lvl.label}</div>
       <div class="athlete-card-badges">Total Badges: 🌟 ${a.badgeCount}</div>
@@ -555,7 +574,7 @@ function renderLeaderboard(){
   const clubRows = clubs.map(c=>{
     const badgeClass = c.rank===1?'r1':c.rank===2?'r2':c.rank===3?'r3':'';
     const logo = getClubLogo(c.club);
-    const logoHtml = logo ? `<img src="${logo}" style="width:22px;height:22px;border-radius:5px;object-fit:cover;vertical-align:-6px;margin-right:8px;">` : '';
+    const logoHtml = logo ? `<span style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#fff;vertical-align:-6px;margin-right:8px;overflow:hidden;"><img src="${logo}" style="width:100%;height:100%;object-fit:cover;"></span>` : '';
     const flag = countryFlag(c.country);
     return `<tr class="club-rank-row" onclick="openClubDetail('${esc(c.club).replace(/'/g,"\\'")}')"><td><span class="club-rank-badge ${badgeClass}">${c.rank}</span></td><td>${logoHtml}${esc(c.club)}${flag?` ${flag}`:''}</td><td style="color:var(--gold);font-weight:700">${c.total}</td></tr>`;
   }).join('');
@@ -567,7 +586,7 @@ function renderLeaderboard(){
       <div class="rank-avatar">${renderAthleteAvatar(a, 38)}</div>
       <div class="rank-info">
         <div class="rank-name">${esc(displayName(a.name))}${isMe?' (You)':''}</div>
-        <div class="rank-club">${getClubLogo(a.club)?`<img src="${getClubLogo(a.club)}" style="width:12px;height:12px;border-radius:3px;object-fit:cover;vertical-align:-2px;margin-right:3px;">`:''}${esc(a.club||'')}${a.country?` ${countryFlag(a.country)}`:''}</div>
+        <div class="rank-club">${getClubLogo(a.club)?`<span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#fff;vertical-align:-2px;margin-right:3px;overflow:hidden;"><img src="${getClubLogo(a.club)}" style="width:100%;height:100%;object-fit:cover;"></span>`:''}${esc(a.club||'')}${a.country?` ${countryFlag(a.country)}`:''}</div>
       </div>
       <div class="rank-badges">🌟 ${a.badgeCount}</div>
     </div>`;
@@ -757,7 +776,7 @@ function buildAvatarOptionPickers(){
     const hasClubLogo = !!curAvatarDraft._clubLogoUrl;
     logoEl.innerHTML = `
       <div class="logo-choice-tile ${curAvatarDraft.logoChoice==='insynch'?'selected':''}" onclick="updateAvatarField('logoChoice','insynch')">
-        <div class="logo-choice-preview" style="background:#000;"><img src="${INSYNCH_LOGO_URL}"></div>
+        <div class="logo-choice-preview" style="background:#fff;"><img src="${INSYNCH_LOGO_URL}"></div>
         <div class="logo-choice-label">In Synch</div>
       </div>
       <div class="logo-choice-tile ${curAvatarDraft.logoChoice==='club'?'selected':''} ${!hasClubLogo?'disabled':''}" onclick="${hasClubLogo?"updateAvatarField('logoChoice','club')":''}">
@@ -879,7 +898,7 @@ function renderAdminTabContent(){
           const logoUrl = logos[logoKey];
           const websiteUrl = websites[logoKey] || '';
           return `<div class="admin-athlete-row" style="flex-wrap:wrap;">
-            <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+            <div style="width:40px;height:40px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
               ${logoUrl ? `<img src="${logoUrl}" style="width:100%;height:100%;object-fit:cover;">` : '<span style="font-size:18px;opacity:0.3;">🏟️</span>'}
             </div>
             <div class="admin-athlete-info"><div class="admin-athlete-name">${esc(club)}</div></div>
@@ -1309,7 +1328,7 @@ async function openAthleteDetail(uid){
     <div class="ad-header">
       <div class="ad-avatar">${renderAthleteAvatar(a, 86)}</div>
       <div class="ad-name">${esc(displayName(a.name))}</div>
-      <div class="ad-club">${getClubLogo(a.club)?`<img src="${getClubLogo(a.club)}" style="width:14px;height:14px;border-radius:3px;object-fit:cover;vertical-align:-2px;margin-right:4px;">`:''}${esc(a.club||'')}</div>
+      <div class="ad-club">${getClubLogo(a.club)?`<span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#fff;vertical-align:-2px;margin-right:4px;overflow:hidden;"><img src="${getClubLogo(a.club)}" style="width:100%;height:100%;object-fit:cover;"></span>`:''}${esc(a.club||'')}</div>
       ${a.country?`<div class="ad-country">Country: ${esc(a.country)} ${countryFlag(a.country)}</div>`:''}
       <div class="ad-level-pill">Level: ${lvl.key==='none'?'Unranked':lvl.label}</div>
     </div>

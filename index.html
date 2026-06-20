@@ -6,7 +6,7 @@
 <title>In Synch Camp — Leaderboard</title>
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, updatePassword } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, updatePassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
   import { getDatabase, ref, set, get, onValue, update } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
   const firebaseConfig = {
     apiKey: "AIzaSyDqEX_bLCE3qi8zO6v_tu0ydL_y0n0h748",
@@ -21,7 +21,7 @@
   const auth = getAuth(app);
   const db = getDatabase(app);
   window._auth = auth; window._db = db;
-  window._fbFns = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, updatePassword, ref, set, get, onValue, update };
+  window._fbFns = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, updatePassword, sendPasswordResetEmail, ref, set, get, onValue, update };
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       const snap = await get(ref(db, 'lb_users/' + user.uid));
@@ -116,6 +116,10 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .btn-login:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(46,230,200,0.4);}
 .btn-login:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
 .login-hint{text-align:center;margin-top:14px;font-size:12px;color:var(--ink-faint);font-weight:600;}
+.forgot-pw-link{display:block;width:100%;text-align:center;background:none;border:none;color:var(--ink-faint);font-size:11px;font-weight:700;font-family:'Fredoka',sans-serif;cursor:pointer;margin-top:10px;text-decoration:underline;}
+.forgot-pw-link:hover{color:var(--teal);}
+.forgot-pw-msg{font-size:12px;color:var(--teal);background:rgba(46,230,200,0.1);border:1px solid rgba(46,230,200,0.3);border-radius:10px;padding:9px 12px;display:none;font-weight:600;text-align:center;}
+.forgot-pw-msg.show{display:block;}
 
 /* ══ APP SHELL ══ */
 #appScreen{display:none;flex-direction:column;height:100%;overflow:hidden;}
@@ -249,7 +253,7 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 
 /* ══ AVATAR BUILDER ══ */
 .avatar-builder{display:grid;grid-template-columns:280px 1fr;gap:24px;}
-@media(max-width:700px){.avatar-builder{grid-template-columns:1fr;}}
+@media(max-width:700px){.avatar-builder{grid-template-columns:1fr;}.avatar-preview-pane{position:static;}}
 .avatar-preview-pane{display:flex;flex-direction:column;align-items:center;background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:24px;position:sticky;top:14px;align-self:start;}
 .avatar-preview-circle{width:200px;height:200px;border-radius:50%;background:var(--bg-card-l);border:4px solid var(--teal);margin-bottom:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 35px rgba(46,230,200,0.2);}
 .btn-save-avatar{width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),var(--teal-d));color:#06281f;border:none;border-radius:13px;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;transition:all 0.2s;}
@@ -361,7 +365,7 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 #clubDetailModal .modal{padding:26px 22px 22px;position:relative;}
 .club-rank-row{cursor:pointer;}
 .cd-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
-.cd-logo{width:54px;height:54px;border-radius:12px;object-fit:cover;background:var(--bg-card-l);flex-shrink:0;}
+.cd-logo{width:54px;height:54px;border-radius:12px;object-fit:cover;background:#fff;flex-shrink:0;}
 .cd-logo-placeholder{width:54px;height:54px;border-radius:12px;background:var(--bg-card-l);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
 .cd-name{font-weight:700;font-size:18px;color:#fff;}
 .cd-country{font-size:12px;color:var(--ink-dim);font-weight:600;}
@@ -377,6 +381,32 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
   .menu-btn{display:flex;}
   .user-chip span:not(.user-chip-avatar){display:none;}
   .header-title span{display:none;}
+  .page-inner{padding:16px 14px 50px;}
+  .podium-wrap{gap:8px;padding:0 4px;}
+  .podium-slot{max-width:110px;}
+  .podium-name{font-size:11px;}
+  .podium-club{font-size:8px;max-width:100px;}
+  .podium-badges{font-size:12px;}
+  .ad-rewards-grid{grid-template-columns:1fr;}
+  .cd-header{flex-wrap:wrap;}
+  .admin-tabs{gap:4px;}
+  .admin-subtab{padding:7px 12px;font-size:11px;}
+  .admin-athlete-row{flex-wrap:wrap;}
+  .badge-input{width:54px;}
+  .modal{padding:18px;max-height:85vh;}
+  #athleteDetailModal .modal,#clubDetailModal .modal{padding:20px 16px 16px;}
+  .lb-explainer{padding:12px 14px;font-size:11px;}
+}
+@media(max-width:480px){
+  .podium-wrap{gap:6px;}
+  .podium-slot{max-width:96px;}
+  .podium-avatar-ring{width:56px!important;height:56px!important;}
+  .podium-slot.rank-1 .podium-avatar-ring{width:68px!important;height:68px!important;}
+  .athlete-grid{grid-template-columns:repeat(2,1fr);}
+  .rewards-grid{grid-template-columns:1fr 1fr;}
+  .lb-hero h1{font-size:22px;}
+  .lb-section{padding:14px 12px;}
+  .login-wrap{padding:18px 16px!important;}
 }
 </style>
 </head>
@@ -405,7 +435,9 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
           <div class="fld"><label>Email</label><input type="email" id="siEmail" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doSignIn()"></div>
           <div class="fld"><label>Password</label><input type="password" id="siPw" placeholder="Password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
           <div class="err-msg" id="siErr"></div>
+          <div class="forgot-pw-msg" id="resetMsg"></div>
           <button class="btn-login" id="siBtn" onclick="doSignIn()">Sign In</button>
+          <button class="forgot-pw-link" onclick="doPasswordReset()">Forgot your password?</button>
         </div>
         <div class="lform" id="suForm" style="display:none">
           <div class="fld"><label>Your Name</label><input type="text" id="suName" placeholder="First name or full name"></div>
@@ -508,6 +540,6 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
   <div class="modal" style="max-width:480px;"></div>
 </div>
 
-<script src="lb-app.js?v=11"></script>
+<script src="lb-app.js?v=13"></script>
 </body>
 </html>
