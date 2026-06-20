@@ -150,12 +150,18 @@ function getNextLevel(badgeCount){
 // ═══════════════════════════════════════════════════════════════
 function buildAvatarUrl(av){
   av = av || DEFAULT_AVATAR;
-  const skinObj = SKIN_TONES.find(s=>s.id===(av.skin||DEFAULT_AVATAR.skin)) || SKIN_TONES[3];
-  const hairColorObj = HAIR_COLORS.find(h=>h.id===(av.hairColor||DEFAULT_AVATAR.hairColor)) || HAIR_COLORS[5];
-  const clothColorObj = CLOTHING_COLORS.find(c=>c.id===(av.clothingColor||DEFAULT_AVATAR.clothingColor)) || CLOTHING_COLORS[1];
-  const exprObj = EXPRESSIONS.find(e=>e.id===(av.expression||DEFAULT_AVATAR.expression)) || EXPRESSIONS[0];
-  const hairStyle = av.hairStyle || DEFAULT_AVATAR.hairStyle;
-  const accessory = av.accessory || DEFAULT_AVATAR.accessory;
+
+  // Defensive lookups: if a saved value doesn't match any known option
+  // (e.g. leftover data from an earlier version of the avatar builder),
+  // silently fall back to the default instead of sending a bad value to the API.
+  const skinObj = SKIN_TONES.find(s=>s.id===av.skin) || SKIN_TONES.find(s=>s.id===DEFAULT_AVATAR.skin);
+  const hairColorObj = HAIR_COLORS.find(h=>h.id===av.hairColor) || HAIR_COLORS.find(h=>h.id===DEFAULT_AVATAR.hairColor);
+  const clothColorObj = CLOTHING_COLORS.find(c=>c.id===av.clothingColor) || CLOTHING_COLORS.find(c=>c.id===DEFAULT_AVATAR.clothingColor);
+  const exprObj = EXPRESSIONS.find(e=>e.id===av.expression) || EXPRESSIONS.find(e=>e.id===DEFAULT_AVATAR.expression);
+  const hairStyleObj = HAIR_STYLES.find(h=>h.id===av.hairStyle);
+  const hairStyle = hairStyleObj ? hairStyleObj.id : DEFAULT_AVATAR.hairStyle;
+  const accessoryObj = ACCESSORIES.find(a=>a.id===av.accessory);
+  const accessory = accessoryObj ? accessoryObj.id : DEFAULT_AVATAR.accessory;
 
   const params = new URLSearchParams();
   params.set('seed', 'static');
