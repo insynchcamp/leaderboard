@@ -439,6 +439,7 @@ function subscribeData(){
   });
   unsubBadges = dbOn('lb_badges', data=>{
     badges = data || {};
+    risingStarsCache = null; // recompute on next render since badge data changed
     renderCurrentPage();
   });
   unsubClubLogos = dbOn('lb_club_logos', data=>{
@@ -499,6 +500,51 @@ function getRankedAthletes(){
     .sort((a,b)=>b.badgeCount - a.badgeCount);
 }
 
+// ═══════════════════════════════════════════════════════════════
+// RISING STARS — athletes who gained the most badges in the last 7 days
+// ═══════════════════════════════════════════════════════════════
+let risingStarsCache = null;
+let risingStarsLoading = false;
+
+function parseEntryDate(entry){
+  // Prefer the camp date itself (when they actually attended); fall back
+  // to the import timestamp if the camp date is missing or unparsable.
+  if(entry.date){
+    const d = new Date(entry.date);
+    if(!isNaN(d.getTime())) return d.getTime();
+  }
+  return entry.addedAt || 0;
+}
+
+async function computeRisingStars(){
+  if(risingStarsLoading) return;
+  risingStarsLoading = true;
+
+  const ranked = getRankedAthletes();
+  const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+
+  const results = await Promise.all(ranked.map(async (a) => {
+    try{
+      const snap = await dbGet('lb_camp_entries/'+a.uid);
+      const entriesObj = snap.val() || {};
+      const recentBadges = Object.values(entriesObj)
+        .filter(e => parseEntryDate(e) >= sevenDaysAgo)
+        .reduce((sum, e) => sum + (e.badges || 0), 0);
+      return { ...a, recentBadges };
+    } catch(ex){
+      return { ...a, recentBadges: 0 };
+    }
+  }));
+
+  risingStarsCache = results
+    .filter(a => a.recentBadges > 0)
+    .sort((a,b) => b.recentBadges - a.recentBadges)
+    .slice(0, 5);
+
+  risingStarsLoading = false;
+  renderCurrentPage();
+}
+
 function getClubRankings(){
   const ranked = getRankedAthletes();
   const clubTotals = {};
@@ -530,7 +576,10 @@ function renderLeaderboard(){
   }
 
   const top3 = ranked.slice(0,3);
-  const risingStars = [...ranked].sort((a,b)=>b.badgeCount-a.badgeCount).slice(0,4);
+  if(risingStarsCache === null && !risingStarsLoading){
+    computeRisingStars(); // kicks off async calc, will re-render when done
+  }
+  const risingStars = risingStarsCache || [];
   const clubs = getClubRankings();
 
   // Podium
@@ -551,7 +600,7 @@ function renderLeaderboard(){
     ${podiumSlot(top3[2], 3)}
   </div>`;
 
-  const risingHtml = risingStars.map(a=>{
+  const risingHtml = risingStars.length ? risingStars.map(a=>{
     const lvl = getLevel(a.badgeCount);
     return `<div class="athlete-card" onclick="openAthleteDetail('${a.uid}')">
       <div class="athlete-card-avatar">${renderAthleteAvatar(a, 54)}</div>
@@ -559,9 +608,12 @@ function renderLeaderboard(){
       <div class="athlete-card-club">${getClubLogo(a.club)?`<span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#fff;vertical-align:-1px;margin-right:3px;overflow:hidden;"><img src="${getClubLogo(a.club)}" style="width:100%;height:100%;object-fit:cover;"></span>`:''}${esc(a.club||'')}</div>
       ${a.country?`<div class="athlete-card-country">Country: ${esc(a.country)} ${countryFlag(a.country)}</div>`:''}
       <div class="athlete-card-level">Level: ${lvl.key==='none'?'Unranked':lvl.label}</div>
+      <div class="athlete-card-rising">+${a.recentBadges} 🌟 this week</div>
       <div class="athlete-card-badges">Total Badges: 🌟 ${a.badgeCount}</div>
     </div>`;
-  }).join('');
+  }).join('') : (risingStarsLoading
+    ? `<p style="grid-column:1/-1;text-align:center;color:var(--ink-faint);padding:20px;font-size:12px;">Loading rising stars...</p>`
+    : `<p style="grid-column:1/-1;text-align:center;color:var(--ink-faint);padding:20px;font-size:12px;">No badges have been earned in the last 7 days yet.</p>`);
 
   const rewardsHtml = REWARDS.map(r=>`
     <div class="reward-card ${r.level}">
@@ -1230,7 +1282,7 @@ async function runAthleteImport(){
         const entryUpdates = {};
         row.campEntries.forEach(entry=>{
           const entryId = 'entry_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
-          entryUpdates[entryId] = entry;
+          entryUpdates[entryId] = { ...entry, addedAt: Date.now() };
         });
         await dbUpd('lb_camp_entries/'+uid, entryUpdates);
       }

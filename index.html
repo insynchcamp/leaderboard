@@ -185,7 +185,9 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .lb-section-hdr .emoji{font-size:18px;}
 
 /* ══ ATHLETE GRID (Rising stars etc) ══ */
-.athlete-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
+.athlete-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+@media(max-width:900px){.athlete-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:560px){.athlete-grid{grid-template-columns:repeat(2,1fr);}}
 .athlete-card{background:var(--bg-card-l);border:1px solid var(--border);border-radius:16px;padding:14px 10px;text-align:center;transition:transform 0.15s;}
 .athlete-card:hover{transform:translateY(-3px);}
 .athlete-card-avatar{display:flex;justify-content:center;margin:0 auto 8px;}
@@ -330,6 +332,7 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
 .athlete-card{cursor:pointer;}
 .athlete-card-country{font-size:10px;color:var(--ink-faint);margin-bottom:3px;font-weight:600;}
 .athlete-card-level{font-size:10px;color:var(--ink-dim);font-weight:700;margin-bottom:4px;}
+.athlete-card-rising{display:inline-flex;align-items:center;gap:3px;background:rgba(46,230,200,0.12);border:1px solid rgba(46,230,200,0.3);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;color:var(--teal);margin-bottom:5px;}
 .athlete-card-badges{font-size:11px;font-weight:700;color:var(--gold);}
 .rank-row{cursor:pointer;}
 
@@ -541,6 +544,6 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
   <div class="modal" style="max-width:480px;"></div>
 </div>
 
-<script src="lb-app.js?v=14"></script>
+<script src="lb-app.js?v=15"></script>
 </body>
 </html>
