@@ -22,86 +22,93 @@ const REWARDS = [
 const DICEBEAR_BASE = 'https://api.dicebear.com/9.x/avataaars/svg';
 
 const SKIN_TONES = [
-  {id:'Tanned',   hex:'#FD9841'},
-  {id:'Yellow',   hex:'#F8D25C'},
-  {id:'Pale',     hex:'#FFDBB4'},
-  {id:'Light',    hex:'#EDB98A'},
-  {id:'Brown',    hex:'#D08B5B'},
-  {id:'DarkBrown',hex:'#AE5D29'},
-  {id:'Black',    hex:'#614335'},
+  {id:'tanned',   hex:'FD9841'},
+  {id:'yellow',   hex:'F8D25C'},
+  {id:'pale',     hex:'FFDBB4'},
+  {id:'light',    hex:'EDB98A'},
+  {id:'brown',    hex:'D08B5B'},
+  {id:'darkBrown',hex:'AE5D29'},
+  {id:'black',    hex:'614335'},
 ];
 
 const HAIR_COLORS = [
-  {id:'Auburn',     hex:'#A55728'},
-  {id:'Black',      hex:'#2C1B18'},
-  {id:'Blonde',     hex:'#B89778'},
-  {id:'BlondeGolden',hex:'#D6B370'},
-  {id:'Brown',      hex:'#724133'},
-  {id:'BrownDark',  hex:'#4A312C'},
-  {id:'PastelPink', hex:'#F59797'},
-  {id:'Platinum',   hex:'#ECDCBF'},
-  {id:'Red',        hex:'#C93305'},
-  {id:'SilverGray', hex:'#E8E1E1'},
+  {id:'auburn',      hex:'A55728'},
+  {id:'black',       hex:'2C1B18'},
+  {id:'blonde',      hex:'B89778'},
+  {id:'blondeGolden',hex:'D6B370'},
+  {id:'brown',       hex:'724133'},
+  {id:'brownDark',   hex:'4A312C'},
+  {id:'pastelPink',  hex:'F59797'},
+  {id:'platinum',    hex:'ECDCBF'},
+  {id:'red',         hex:'C93305'},
+  {id:'silverGray',  hex:'E8E1E1'},
 ];
 
+// Verified against https://github.com/HB0N0/AvataaarsJs (mirrors official Avataaars option set)
 const HAIR_STYLES = [
-  {id:'ShortHairShortFlat',   label:'Short Flat'},
-  {id:'ShortHairShortCurly',  label:'Short Curly'},
-  {id:'ShortHairShortWaved',  label:'Short Waved'},
-  {id:'ShortHairTheCaesar',   label:'Caesar Crop'},
-  {id:'ShortHairFrizzle',     label:'Frizzle'},
-  {id:'ShortHairSides',       label:'Buzzed Sides'},
-  {id:'ShortHairDreads01',    label:'Dreads'},
-  {id:'ShortHairShaggyMullet',label:'Shaggy Mullet'},
-  {id:'LongHairStraight',     label:'Long Straight'},
-  {id:'LongHairStraight2',    label:'Long Straight 2'},
-  {id:'LongHairCurly',        label:'Long Curly'},
-  {id:'LongHairCurvy',        label:'Long Curvy'},
-  {id:'LongHairBob',          label:'Bob'},
-  {id:'LongHairBun',          label:'Bun'},
-  {id:'LongHairFro',          label:'Afro'},
-  {id:'LongHairBigHair',      label:'Big Hair'},
-  {id:'LongHairFrida',        label:'Braided Crown'},
-  {id:'NoHair',                label:'Bald'},
-  {id:'Hat',                   label:'Beanie'},
+  {id:'shortFlat',           label:'Short Flat'},
+  {id:'shortCurly',          label:'Short Curly'},
+  {id:'shortWaved',          label:'Short Waved'},
+  {id:'shortRound',          label:'Short Round'},
+  {id:'theCaesar',           label:'Caesar Crop'},
+  {id:'theCaesarAndSidePart',label:'Caesar Side Part'},
+  {id:'frizzle',             label:'Frizzle'},
+  {id:'shaggy',              label:'Shaggy'},
+  {id:'shaggyMullet',        label:'Shaggy Mullet'},
+  {id:'sides',               label:'Buzzed Sides'},
+  {id:'dreads01',            label:'Dreads'},
+  {id:'dreads02',            label:'Dreads Long'},
+  {id:'straight01',          label:'Long Straight'},
+  {id:'straight02',          label:'Long Straight 2'},
+  {id:'straightAndStrand',   label:'Straight & Strand'},
+  {id:'curly',               label:'Long Curly'},
+  {id:'curvy',               label:'Long Curvy'},
+  {id:'bob',                 label:'Bob'},
+  {id:'bun',                 label:'Bun'},
+  {id:'fro',                 label:'Afro'},
+  {id:'froAndBand',          label:'Afro & Band'},
+  {id:'bigHair',             label:'Big Hair'},
+  {id:'frida',               label:'Braided Crown'},
+  {id:'miaWallace',          label:'Bob & Bangs'},
+  {id:'longButNotTooLong',   label:'Medium Length'},
 ];
 
 const EXPRESSIONS = [
-  {id:'Default', mouth:'Smile',     eyes:'Default',  eyebrow:'Default', label:'Happy'},
-  {id:'Excited', mouth:'Twinkle',   eyes:'Happy',    eyebrow:'RaisedExcited', label:'Excited'},
-  {id:'Cool',    mouth:'Smile',     eyes:'Wink',     eyebrow:'UpDown', label:'Cool'},
-  {id:'Laugh',   mouth:'Disbelief', eyes:'Squint',   eyebrow:'DefaultNatural', label:'Laughing'},
-  {id:'Serious', mouth:'Serious',   eyes:'Default',  eyebrow:'SadConcerned', label:'Focused'},
-  {id:'Grin',    mouth:'Grimace',  eyes:'Surprised', eyebrow:'Up', label:'Cheeky'},
+  {id:'happy',   mouth:'smile',     eyes:'default',   eyebrow:'default',       label:'Happy'},
+  {id:'excited', mouth:'twinkle',   eyes:'happy',     eyebrow:'raisedExcited', label:'Excited'},
+  {id:'cool',    mouth:'smile',     eyes:'wink',      eyebrow:'upDown',        label:'Cool'},
+  {id:'laugh',   mouth:'disbelief', eyes:'squint',    eyebrow:'defaultNatural',label:'Laughing'},
+  {id:'serious', mouth:'serious',   eyes:'default',   eyebrow:'sadConcerned',  label:'Focused'},
+  {id:'cheeky',  mouth:'grimace',   eyes:'surprised', eyebrow:'up',            label:'Cheeky'},
 ];
 
 const ACCESSORIES = [
-  {id:'Blank',          label:'None'},
-  {id:'Round',          label:'Round Glasses'},
-  {id:'Prescription2',  label:'Glasses'},
-  {id:'Sunglasses',     label:'Sunglasses'},
-  {id:'Wayfarers',      label:'Wayfarers'},
+  {id:'blank',          label:'None'},
+  {id:'round',          label:'Round Glasses'},
+  {id:'prescription02', label:'Glasses'},
+  {id:'sunglasses',     label:'Sunglasses'},
+  {id:'wayfarers',      label:'Wayfarers'},
 ];
 
 const CLOTHING_COLORS = [
-  {id:'Black',    hex:'#262E33'},
-  {id:'Blue03',   hex:'#65C9FF'},
-  {id:'Gray02',   hex:'#929598'},
-  {id:'Heather',  hex:'#3C4F5C'},
-  {id:'PastelBlue',hex:'#B1E2FF'},
-  {id:'PastelGreen',hex:'#A7FFC4'},
-  {id:'Pink',     hex:'#FF488E'},
-  {id:'Red',      hex:'#FF5C5C'},
-  {id:'White',    hex:'#FFFFFF'},
+  {id:'black',     hex:'262E33'},
+  {id:'blue03',    hex:'65C9FF'},
+  {id:'gray02',    hex:'929598'},
+  {id:'heather',   hex:'3C4F5C'},
+  {id:'pastelBlue',hex:'B1E2FF'},
+  {id:'pastelGreen',hex:'A7FFC4'},
+  {id:'pink',      hex:'FF488E'},
+  {id:'red',       hex:'FF5C5C'},
+  {id:'white',     hex:'FFFFFF'},
 ];
 
 const DEFAULT_AVATAR = {
-  skin: 'Light',
-  hairColor: 'BrownDark',
-  hairStyle: 'ShortHairShortFlat',
-  expression: 'Default',
-  accessory: 'Blank',
-  clothingColor: 'Blue03',
+  skin: 'light',
+  hairColor: 'brownDark',
+  hairStyle: 'shortFlat',
+  expression: 'happy',
+  accessory: 'blank',
+  clothingColor: 'blue03',
   logoChoice: 'insynch',  // 'insynch' or 'club'
 };
 
@@ -143,7 +150,7 @@ function getNextLevel(badgeCount){
 // ═══════════════════════════════════════════════════════════════
 function buildAvatarUrl(av){
   av = av || DEFAULT_AVATAR;
-  const skinObj = SKIN_TONES.find(s=>s.id===(av.skin||DEFAULT_AVATAR.skin)) || SKIN_TONES[2];
+  const skinObj = SKIN_TONES.find(s=>s.id===(av.skin||DEFAULT_AVATAR.skin)) || SKIN_TONES[3];
   const hairColorObj = HAIR_COLORS.find(h=>h.id===(av.hairColor||DEFAULT_AVATAR.hairColor)) || HAIR_COLORS[5];
   const clothColorObj = CLOTHING_COLORS.find(c=>c.id===(av.clothingColor||DEFAULT_AVATAR.clothingColor)) || CLOTHING_COLORS[1];
   const exprObj = EXPRESSIONS.find(e=>e.id===(av.expression||DEFAULT_AVATAR.expression)) || EXPRESSIONS[0];
@@ -154,15 +161,24 @@ function buildAvatarUrl(av){
   params.set('seed', 'static');
   params.set('top', hairStyle);
   params.set('topProbability', '100');
-  params.set('hairColor', hairColorObj.hex.replace('#',''));
-  params.set('skinColor', skinObj.hex.replace('#',''));
-  params.set('clothing', 'CrewNeck');
-  params.set('clothesColor', clothColorObj.hex.replace('#',''));
+  params.set('hairColor', hairColorObj.hex);
+  params.set('hairColorProbability', '100');
+  params.set('skinColor', skinObj.hex);
+  params.set('clothing', 'shirtCrewNeck');
+  params.set('clothesColor', clothColorObj.hex);
   params.set('mouth', exprObj.mouth);
+  params.set('mouthProbability', '100');
   params.set('eyes', exprObj.eyes);
+  params.set('eyesProbability', '100');
   params.set('eyebrows', exprObj.eyebrow);
-  params.set('accessories', accessory);
-  params.set('accessoriesProbability', accessory==='Blank' ? '0' : '100');
+  params.set('eyebrowsProbability', '100');
+  // Only send accessories params when an actual accessory is chosen.
+  // Omitting the param entirely (rather than sending an empty/blank value)
+  // avoids enum-validation errors from the API for the "none" case.
+  if(accessory && accessory !== 'blank'){
+    params.set('accessories', accessory);
+    params.set('accessoriesProbability', '100');
+  }
   params.set('facialHairProbability', '0');
   params.set('backgroundColor', 'transparent');
 
