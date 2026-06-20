@@ -1387,7 +1387,7 @@ function openClubDetail(clubName){
   `).join('');
 
   const logoHtml = logo
-    ? `<img src="${logo}" class="cd-logo" alt="">`
+    ? `<div class="cd-logo"><img src="${logo}" alt=""></div>`
     : `<div class="cd-logo-placeholder">🏟️</div>`;
 
   const websiteHtml = website
