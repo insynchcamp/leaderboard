@@ -141,6 +141,31 @@ function displayName(fullName){
 function showErr(el,m){el.textContent=m;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),5000);}
 function authErr(c){const m={'auth/invalid-email':'Invalid email.','auth/user-not-found':'No account found.','auth/wrong-password':'Incorrect password.','auth/email-already-in-use':'Email already in use.','auth/weak-password':'Password must be 6+ characters.','auth/invalid-credential':'Incorrect email or password.','auth/too-many-requests':'Too many attempts. Try later.'};return m[c]||'Error. Please try again.';}
 
+
+// Country name -> ISO code map (covers common countries; falls back gracefully)
+const COUNTRY_CODES = {
+  'uk':'GB','united kingdom':'GB','england':'GB','scotland':'GB','wales':'GB','northern ireland':'GB',
+  'usa':'US','united states':'US','united states of america':'US','america':'US',
+  'france':'FR','germany':'DE','malta':'MT','denmark':'DK','switzerland':'CH',
+  'spain':'ES','italy':'IT','indonesia':'ID','ireland':'IE','netherlands':'NL',
+  'portugal':'PT','belgium':'BE','austria':'AT','sweden':'SE','norway':'NO',
+  'finland':'FI','poland':'PL','greece':'GR','canada':'CA','australia':'AU',
+  'new zealand':'NZ','japan':'JP','china':'CN','south korea':'KR','brazil':'BR',
+  'mexico':'MX','south africa':'ZA','india':'IN','singapore':'SG','hong kong':'HK',
+};
+
+function countryToFlag(countryName){
+  if(!countryName) return '';
+  const code = COUNTRY_CODES[countryName.trim().toLowerCase()];
+  if(!code) return '';
+  // Convert ISO 2-letter code to flag emoji via regional indicator symbols
+  return code.toUpperCase().replace(/./g, ch => String.fromCodePoint(127397 + ch.charCodeAt(0)));
+}
+
+function countryFlag(countryName){
+  const flag = countryToFlag(countryName);
+  return flag || '';
+}
 // ═══════════════════════════════════════════════════════════════
 // LEVEL HELPERS
 // ═══════════════════════════════════════════════════════════════
@@ -424,11 +449,14 @@ function getRankedAthletes(){
 function getClubRankings(){
   const ranked = getRankedAthletes();
   const clubTotals = {};
+  const clubCountries = {};
   ranked.forEach(a=>{
     const club = a.club || 'Unknown Club';
     clubTotals[club] = (clubTotals[club]||0) + a.badgeCount;
+    // Track the country for each club (first one seen — clubs are normally single-country)
+    if(a.country && !clubCountries[club]) clubCountries[club] = a.country;
   });
-  const arr = Object.entries(clubTotals).map(([club,total])=>({club,total})).sort((a,b)=>b.total-a.total);
+  const arr = Object.entries(clubTotals).map(([club,total])=>({club,total,country:clubCountries[club]||''})).sort((a,b)=>b.total-a.total);
   // assign ranks with ties
   let rank = 1;
   arr.forEach((c,i)=>{
@@ -459,7 +487,7 @@ function renderLeaderboard(){
     return `<div class="podium-slot rank-${rankNum}">
       <div class="podium-avatar-ring">${crown}${renderAthleteAvatar(athlete, rankNum===1?90:72)}</div>
       <div class="podium-name">${esc(displayName(athlete.name))}</div>
-      <div class="podium-club">${getClubLogo(athlete.club)?`<img src="${getClubLogo(athlete.club)}" style="width:12px;height:12px;border-radius:3px;object-fit:cover;vertical-align:-2px;margin-right:3px;">`:''}${esc(athlete.club||'')}</div>
+      <div class="podium-club">${getClubLogo(athlete.club)?`<img src="${getClubLogo(athlete.club)}" style="width:12px;height:12px;border-radius:3px;object-fit:cover;vertical-align:-2px;margin-right:3px;">`:''}${esc(athlete.club||'')}${athlete.country?` ${countryFlag(athlete.country)}`:''}</div>
       <div class="podium-badges">🏅 ${athlete.badgeCount}</div>
       <div class="podium-base">${rankNum}</div>
     </div>`;
@@ -476,7 +504,7 @@ function renderLeaderboard(){
     return `<div class="athlete-card">
       <div class="athlete-card-avatar">${renderAthleteAvatar(a, 54)}</div>
       <div class="athlete-card-name">${esc(displayName(a.name))}</div>
-      <div class="athlete-card-club">${getClubLogo(a.club)?`<img src="${getClubLogo(a.club)}" style="width:11px;height:11px;border-radius:3px;object-fit:cover;vertical-align:-1px;margin-right:3px;">`:''}${esc(a.club||'')}</div>
+      <div class="athlete-card-club">${getClubLogo(a.club)?`<img src="${getClubLogo(a.club)}" style="width:11px;height:11px;border-radius:3px;object-fit:cover;vertical-align:-1px;margin-right:3px;">`:''}${esc(a.club||'')}${a.country?` ${countryFlag(a.country)}`:''}</div>
       <div class="athlete-card-badges">🏅 ${a.badgeCount}</div>
       <div><span class="level-tag ${lvl.key}">${lvl.label}</span></div>
     </div>`;
@@ -494,7 +522,8 @@ function renderLeaderboard(){
     const badgeClass = c.rank===1?'r1':c.rank===2?'r2':c.rank===3?'r3':'';
     const logo = getClubLogo(c.club);
     const logoHtml = logo ? `<img src="${logo}" style="width:22px;height:22px;border-radius:5px;object-fit:cover;vertical-align:-6px;margin-right:8px;">` : '';
-    return `<tr><td><span class="club-rank-badge ${badgeClass}">${c.rank}</span></td><td>${logoHtml}${esc(c.club)}</td><td style="color:var(--gold);font-weight:700">${c.total}</td></tr>`;
+    const flag = countryFlag(c.country);
+    return `<tr><td><span class="club-rank-badge ${badgeClass}">${c.rank}</span></td><td>${logoHtml}${esc(c.club)}${flag?` ${flag}`:''}</td><td style="color:var(--gold);font-weight:700">${c.total}</td></tr>`;
   }).join('');
 
   const fullRankingsHtml = ranked.map((a,i)=>{
@@ -504,7 +533,7 @@ function renderLeaderboard(){
       <div class="rank-avatar">${renderAthleteAvatar(a, 38)}</div>
       <div class="rank-info">
         <div class="rank-name">${esc(displayName(a.name))}${isMe?' (You)':''}</div>
-        <div class="rank-club">${getClubLogo(a.club)?`<img src="${getClubLogo(a.club)}" style="width:12px;height:12px;border-radius:3px;object-fit:cover;vertical-align:-2px;margin-right:3px;">`:''}${esc(a.club||'')}</div>
+        <div class="rank-club">${getClubLogo(a.club)?`<img src="${getClubLogo(a.club)}" style="width:12px;height:12px;border-radius:3px;object-fit:cover;vertical-align:-2px;margin-right:3px;">`:''}${esc(a.club||'')}${a.country?` ${countryFlag(a.country)}`:''}</div>
       </div>
       <div class="rank-badges">🏅 ${a.badgeCount}</div>
     </div>`;
@@ -871,12 +900,14 @@ function handleCsvFile(e){
 function parseCsvFile(file){
   const reader = new FileReader();
   reader.onload = (e) => {
-    const text = e.target.result;
+    let text = e.target.result;
+    if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+
     const lines = text.split(/\r?\n/).filter(l=>l.trim());
     if(lines.length < 2){ alert('CSV appears empty or missing data rows.'); return; }
 
-    const headers = lines[0].split(',').map(h=>h.trim().toLowerCase());
-    const emailIdx = headers.findIndex(h=>h.includes('email'));
+    const headers = parseCsvLine(lines[0]).map(normaliseHeader);
+    const emailIdx = headers.findIndex(h=>h.includes('email') || h.includes('mail'));
     const badgeIdx = headers.findIndex(h=>h.includes('badge'));
 
     if(emailIdx === -1 || badgeIdx === -1){
@@ -885,7 +916,7 @@ function parseCsvFile(file){
     }
 
     const rows = lines.slice(1).map(line=>{
-      const cols = line.split(',').map(c=>c.trim());
+      const cols = parseCsvLine(line);
       return { email: cols[emailIdx], badges: parseInt(cols[badgeIdx])||0 };
     }).filter(r=>r.email);
 
@@ -966,17 +997,48 @@ function handleAthleteCsvFile(e){
   if(file) parseAthleteCsv(file);
 }
 
+// Simple CSV line parser that handles quoted fields containing commas
+function parseCsvLine(line){
+  const result = [];
+  let cur = '';
+  let inQuotes = false;
+  for(let i=0; i<line.length; i++){
+    const ch = line[i];
+    if(ch === '"'){
+      if(inQuotes && line[i+1] === '"'){ cur += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if(ch === ',' && !inQuotes){
+      result.push(cur.trim());
+      cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+// Normalises a header for flexible matching: lowercase, strip BOM,
+// remove spaces/hyphens/underscores so "E-mail", "E_Mail", "e mail" all match "email"
+function normaliseHeader(h){
+  return h.replace(/^\ufeff/, '').toLowerCase().replace(/[\s\-_]/g, '');
+}
+
 function parseAthleteCsv(file){
   const reader = new FileReader();
   reader.onload = (e) => {
-    const text = e.target.result;
+    let text = e.target.result;
+    // Strip UTF-8 BOM if present (common with Excel CSV exports)
+    if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+
     const lines = text.split(/\r?\n/).filter(l=>l.trim());
     if(lines.length < 2){ alert('CSV appears empty or missing data rows.'); return; }
 
-    const headers = lines[0].split(',').map(h=>h.trim().toLowerCase());
+    const headers = parseCsvLine(lines[0]).map(normaliseHeader);
     const nameIdx = headers.findIndex(h=>h.includes('name'));
     const clubIdx = headers.findIndex(h=>h.includes('club'));
-    const emailIdx = headers.findIndex(h=>h.includes('email'));
+    const countryIdx = headers.findIndex(h=>h.includes('country') || h.includes('nation'));
+    const emailIdx = headers.findIndex(h=>h.includes('email') || h.includes('mail'));
     const badgeIdx = headers.findIndex(h=>h.includes('badge'));
 
     if(nameIdx === -1 || emailIdx === -1){
@@ -987,11 +1049,12 @@ function parseAthleteCsv(file){
     const existingEmails = new Set(Object.values(athletes).map(a=>(a.email||'').toLowerCase()));
 
     athleteCsvData = lines.slice(1).map(line=>{
-      const cols = line.split(',').map(c=>c.trim());
+      const cols = parseCsvLine(line);
       const email = cols[emailIdx] || '';
       return {
         name: cols[nameIdx] || '',
         club: clubIdx>-1 ? (cols[clubIdx]||'') : '',
+        country: countryIdx>-1 ? (cols[countryIdx]||'') : '',
         email: email,
         badges: badgeIdx>-1 ? (parseInt(cols[badgeIdx])||0) : 0,
         alreadyExists: existingEmails.has(email.toLowerCase()),
@@ -1017,12 +1080,13 @@ function renderAthleteCsvPreview(){
     </p>
     <div style="overflow-x:auto">
       <table class="csv-preview-table">
-        <thead><tr><th>Name</th><th>Club</th><th>Email</th><th>Badges</th><th>Status</th></tr></thead>
+        <thead><tr><th>Name</th><th>Club</th><th>Country</th><th>Email</th><th>Badges</th><th>Status</th></tr></thead>
         <tbody>
           ${athleteCsvData.map(r=>`
             <tr>
               <td>${esc(r.name)}</td>
               <td>${esc(r.club)}</td>
+              <td>${countryFlag(r.country)} ${esc(r.country)}</td>
               <td>${esc(r.email)}</td>
               <td>${r.badges}</td>
               <td class="${r.alreadyExists?'csv-match-bad':'csv-match-ok'}">${r.alreadyExists?'Already exists':'✓ Will create'}</td>
@@ -1056,7 +1120,7 @@ async function runAthleteImport(){
       const data = await res.json();
       if(data.error){ failed.push(row.name + ' (' + data.error.message + ')'); continue; }
       await dbSet('lb_users/'+data.localId, {
-        name: row.name, club: row.club, email: row.email, role: 'athlete',
+        name: row.name, club: row.club, country: row.country||'', email: row.email, role: 'athlete',
         avatar: DEFAULT_AVATAR, mustChangePassword: true, createdAt: Date.now()
       });
       await dbSet('lb_badges/'+data.localId, row.badges);
