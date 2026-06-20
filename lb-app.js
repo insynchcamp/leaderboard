@@ -118,6 +118,8 @@ const DEFAULT_AVATAR = {
 let CU = null, isAdmin = false;
 let athletes = {}; // uid -> {name, club, email, role, avatar}
 let badges = {}; // uid -> count
+let athletesLoaded = false;
+let badgesLoaded = false;
 let unsubAthletes = null, unsubBadges = null;
 let curAvatarDraft = {...DEFAULT_AVATAR};
 let curAdminTab = 'manual';
@@ -506,6 +508,9 @@ window.onFirebaseLogout = function(){
   CU = null; isAdmin = false;
   if(unsubAthletes){unsubAthletes();unsubAthletes=null;}
   if(unsubBadges){unsubBadges();unsubBadges=null;}
+  athletesLoaded = false;
+  badgesLoaded = false;
+  risingStarsCache = null;
   document.getElementById('loadingScreen').style.display = 'none';
   // Public mode: show the app shell directly with the leaderboard,
   // no forced login screen. Sign in is now an optional modal.
@@ -628,11 +633,14 @@ function subscribeData(){
   if(unsubAnnouncement) unsubAnnouncement();
   unsubAthletes = dbOn('lb_users', data=>{
     athletes = data || {};
+    athletesLoaded = true;
+    if(athletesLoaded && badgesLoaded) risingStarsCache = null; // safe to (re)compute now both sources are in
     renderCurrentPage();
   });
   unsubBadges = dbOn('lb_badges', data=>{
     const oldBadges = badges;
     badges = data || {};
+    badgesLoaded = true;
     risingStarsCache = null; // recompute on next render since badge data changed
     checkForLevelUp(oldBadges);
     renderCurrentPage();
@@ -795,7 +803,7 @@ function renderLeaderboard(){
   }
 
   const top3 = ranked.slice(0,3);
-  if(risingStarsCache === null && !risingStarsLoading){
+  if(risingStarsCache === null && !risingStarsLoading && athletesLoaded && badgesLoaded){
     computeRisingStars(); // kicks off async calc, will re-render when done
   }
   const risingStars = risingStarsCache || [];
