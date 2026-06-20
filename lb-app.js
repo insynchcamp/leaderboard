@@ -66,7 +66,6 @@ const HAIR_STYLES = [
   {id:'bob',                 label:'Bob'},
   {id:'bun',                 label:'Bun'},
   {id:'fro',                 label:'Afro'},
-  {id:'froAndBand',          label:'Afro & Band'},
   {id:'bigHair',             label:'Big Hair'},
   {id:'frida',               label:'Braided Crown'},
   {id:'miaWallace',          label:'Bob & Bangs'},
@@ -129,6 +128,16 @@ function dbUpd(p,v){return window._fbFns.update(dbRef(p),v);}
 function dbGet(p){return window._fbFns.get(dbRef(p));}
 function dbOn(p,cb){return window._fbFns.onValue(dbRef(p),s=>cb(s.val()));}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Privacy: show "First L." publicly instead of full surname (these are minors)
+function displayName(fullName){
+  if(!fullName) return '';
+  const parts = fullName.trim().split(/\s+/);
+  if(parts.length < 2) return parts[0] || '';
+  const first = parts[0];
+  const lastInitial = parts[parts.length-1].charAt(0).toUpperCase();
+  return first + ' ' + lastInitial + '.';
+}
 function showErr(el,m){el.textContent=m;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),5000);}
 function authErr(c){const m={'auth/invalid-email':'Invalid email.','auth/user-not-found':'No account found.','auth/wrong-password':'Incorrect password.','auth/email-already-in-use':'Email already in use.','auth/weak-password':'Password must be 6+ characters.','auth/invalid-credential':'Incorrect email or password.','auth/too-many-requests':'Too many attempts. Try later.'};return m[c]||'Error. Please try again.';}
 
@@ -449,7 +458,7 @@ function renderLeaderboard(){
     const crown = rankNum===1 ? '<div class="podium-crown">👑</div>' : '';
     return `<div class="podium-slot rank-${rankNum}">
       <div class="podium-avatar-ring">${crown}${renderAthleteAvatar(athlete, rankNum===1?90:72)}</div>
-      <div class="podium-name">${esc(athlete.name)}</div>
+      <div class="podium-name">${esc(displayName(athlete.name))}</div>
       <div class="podium-club">${getClubLogo(athlete.club)?`<img src="${getClubLogo(athlete.club)}" style="width:12px;height:12px;border-radius:3px;object-fit:cover;vertical-align:-2px;margin-right:3px;">`:''}${esc(athlete.club||'')}</div>
       <div class="podium-badges">🏅 ${athlete.badgeCount}</div>
       <div class="podium-base">${rankNum}</div>
@@ -466,7 +475,7 @@ function renderLeaderboard(){
     const lvl = getLevel(a.badgeCount);
     return `<div class="athlete-card">
       <div class="athlete-card-avatar">${renderAthleteAvatar(a, 54)}</div>
-      <div class="athlete-card-name">${esc(a.name)}</div>
+      <div class="athlete-card-name">${esc(displayName(a.name))}</div>
       <div class="athlete-card-club">${getClubLogo(a.club)?`<img src="${getClubLogo(a.club)}" style="width:11px;height:11px;border-radius:3px;object-fit:cover;vertical-align:-1px;margin-right:3px;">`:''}${esc(a.club||'')}</div>
       <div class="athlete-card-badges">🏅 ${a.badgeCount}</div>
       <div><span class="level-tag ${lvl.key}">${lvl.label}</span></div>
@@ -494,7 +503,7 @@ function renderLeaderboard(){
       <div class="rank-num">${i+1}</div>
       <div class="rank-avatar">${renderAthleteAvatar(a, 38)}</div>
       <div class="rank-info">
-        <div class="rank-name">${esc(a.name)}${isMe?' (You)':''}</div>
+        <div class="rank-name">${esc(displayName(a.name))}${isMe?' (You)':''}</div>
         <div class="rank-club">${getClubLogo(a.club)?`<img src="${getClubLogo(a.club)}" style="width:12px;height:12px;border-radius:3px;object-fit:cover;vertical-align:-2px;margin-right:3px;">`:''}${esc(a.club||'')}</div>
       </div>
       <div class="rank-badges">🏅 ${a.badgeCount}</div>
@@ -556,7 +565,7 @@ async function renderProfilePage(){
   wrap.innerHTML = `
     <div class="profile-hero">
       <div class="profile-avatar-big" id="profileAvatarBig">${renderAvatarSVG(curAvatarDraft, 130)}</div>
-      <div class="profile-name">${esc(profile.name||CU.name)}</div>
+      <div class="profile-name">${esc(displayName(profile.name||CU.name))}</div>
       <div class="profile-club">${esc(profile.club||'')}</div>
       <div class="profile-rank-pill">🏅 ${badgeCount} Badges &middot; ${lvl.label} Level</div>
     </div>
