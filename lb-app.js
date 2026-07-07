@@ -1121,6 +1121,7 @@ function renderAdminPage(){
       <button class="admin-subtab ${curAdminTab==='logos'?'active':''}" onclick="switchAdminTab('logos')">🏷️ Club Logos</button>
       <button class="admin-subtab ${curAdminTab==='announcement'?'active':''}" onclick="switchAdminTab('announcement')">📣 Announcement</button>
       <button class="admin-subtab ${curAdminTab==='accounts'?'active':''}" onclick="switchAdminTab('accounts')">👥 Accounts</button>
+      <button class="admin-subtab ${curAdminTab==='cleanup'?'active':''}" onclick="switchAdminTab('cleanup')">🧹 Fix Duplicates</button>
     </div>
     <div id="adminTabContent"></div>
   `;
@@ -1174,7 +1175,7 @@ function renderAdminTabContent(){
   else if(curAdminTab === 'import'){
     el.innerHTML = `<div class="lb-section">
       <div class="lb-section-hdr"><h2>Import Athletes &amp; Camp Records</h2></div>
-      <p style="font-size:12px;color:var(--ink-dim);margin-bottom:14px;line-height:1.6;">Upload a CSV with one row per camp attended. Columns: <strong>Name</strong>, <strong>Club</strong>, <strong>Country</strong>, <strong>Club Website</strong>, <strong>Email</strong>, <strong>Camp Date</strong>, <strong>Camp Name</strong>, <strong>Badges</strong>. If an athlete attended multiple camps, give them multiple rows with the same name &amp; email — their badges will total up automatically and each camp will show in their detail view. New accounts use the temporary password <strong style="color:var(--teal)">${TEMP_PASSWORD}</strong> and are asked to set their own password on first login. Re-uploading for an existing athlete adds the new camp entries and badges on top of what they already have.</p>
+      <p style="font-size:12px;color:var(--ink-dim);margin-bottom:14px;line-height:1.6;">Upload a CSV with one row per camp attended. Columns: <strong>Name</strong>, <strong>Club</strong>, <strong>Country</strong>, <strong>Club Website</strong>, <strong>Email</strong>, <strong>Camp Date</strong>, <strong>Camp Name</strong>, <strong>Badges</strong>. If an athlete attended multiple camps, give them multiple rows with the same name &amp; email — their badges will total up automatically and each camp will show in their detail view. New accounts use the temporary password <strong style="color:var(--teal)">${TEMP_PASSWORD}</strong> and are asked to set their own password on first login. Re-uploading for an existing athlete will only add camps they don't already have on record (matched by camp name &amp; date) — already-recorded camps and their badges won't be duplicated.</p>
       <div class="upload-drop" id="athleteCsvDrop" onclick="document.getElementById('athleteCsvFileInput').click()" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="handleAthleteCsvDrop(event)">
         <p>📄 Click to upload or drag & drop your CSV</p>
         <small>Columns: Name, Club, Country, Club Website, Email, Camp Date, Camp Name, Badges</small>
@@ -1252,6 +1253,143 @@ function renderAdminTabContent(){
       `).join('') : `<div class="empty-st"><div class="emoji">🏊‍♀️</div><p>No athletes yet.</p></div>`}
     </div>`;
   }
+
+  else if(curAdminTab === 'cleanup'){
+    el.innerHTML = `<div class="lb-section">
+      <div class="lb-section-hdr"><h2>Find &amp; Remove Duplicate Camps</h2></div>
+      <p style="font-size:12px;color:var(--ink-dim);margin-bottom:14px;line-height:1.6;">Scans every athlete's camp history for camps recorded more than once (matched by the same camp name &amp; date) — this can happen from a spreadsheet being uploaded twice before duplicate-detection was added. For each duplicate found, the earliest copy is kept and the extra copies are removed, along with the badges they added. Nothing is changed until you review and confirm.</p>
+      <button class="btn-mini-save" onclick="scanForDuplicateCamps()" id="btnScanDupes">🔍 Scan for Duplicates</button>
+      <div id="dupeScanResults" style="margin-top:14px;"></div>
+    </div>`;
+  }
+}
+
+let dupeScanData = null;
+
+async function scanForDuplicateCamps(){
+  const btn = document.getElementById('btnScanDupes');
+  const resultsEl = document.getElementById('dupeScanResults');
+  btn.disabled = true;
+  btn.textContent = 'Scanning...';
+  resultsEl.innerHTML = '';
+
+  const athleteUids = Object.keys(athletes);
+  const findings = [];
+  let checked = 0;
+
+  for(const uid of athleteUids){
+    checked++;
+    btn.textContent = `Scanning ${checked} / ${athleteUids.length}...`;
+    let entriesObj;
+    try{
+      const snap = await dbGet('lb_camp_entries/'+uid);
+      entriesObj = snap.val() || {};
+    } catch(ex){ continue; }
+
+    const entryList = Object.entries(entriesObj).map(([id, entry])=>({ id, ...entry }));
+    if(entryList.length < 2) continue;
+
+    // Group entries by camp signature (name + date)
+    const groups = {};
+    entryList.forEach(entry=>{
+      const sig = campEntrySignature(entry);
+      if(!groups[sig]) groups[sig] = [];
+      groups[sig].push(entry);
+    });
+
+    const removeIds = [];
+    let badgesToRemove = 0;
+    const dupeSummary = [];
+    Object.values(groups).forEach(group=>{
+      if(group.length < 2) return;
+      // Keep the earliest copy (by addedAt), remove the rest
+      group.sort((a,b)=>(a.addedAt||0)-(b.addedAt||0));
+      const [keep, ...extras] = group;
+      extras.forEach(e=>{
+        removeIds.push(e.id);
+        badgesToRemove += (e.badges||0);
+      });
+      dupeSummary.push({ campName: keep.campName||'Camp', date: keep.date||'', copies: group.length });
+    });
+
+    if(removeIds.length){
+      findings.push({
+        uid, name: athletes[uid].name || athletes[uid].email || uid, email: athletes[uid].email || '',
+        removeIds, badgesToRemove, dupeSummary,
+      });
+    }
+  }
+
+  dupeScanData = findings;
+  btn.disabled = false;
+  btn.textContent = '🔍 Scan for Duplicates';
+  renderDupeScanResults();
+}
+
+function renderDupeScanResults(){
+  const resultsEl = document.getElementById('dupeScanResults');
+  if(!dupeScanData || !dupeScanData.length){
+    resultsEl.innerHTML = `<p style="font-size:12px;color:var(--ink-dim);margin-top:10px;">✅ No duplicate camps found.</p>`;
+    return;
+  }
+  const totalCamps = dupeScanData.reduce((s,f)=>s+f.removeIds.length,0);
+  const totalBadges = dupeScanData.reduce((s,f)=>s+f.badgesToRemove,0);
+
+  resultsEl.innerHTML = `
+    <div style="background:rgba(255,107,129,0.1);border:1px solid rgba(255,107,129,0.3);border-radius:12px;padding:12px 14px;margin-top:10px;">
+      <p style="font-size:12px;font-weight:700;margin-bottom:8px;">Found ${totalCamps} duplicate camp ${totalCamps!==1?'entries':'entry'} across ${dupeScanData.length} athlete${dupeScanData.length!==1?'s':''} (−${totalBadges} badge${totalBadges!==1?'s':''} total once removed).</p>
+      <div style="overflow-x:auto">
+        <table class="csv-preview-table">
+          <thead><tr><th>Athlete</th><th>Email</th><th>Duplicate Camps</th><th>Badges to Remove</th></tr></thead>
+          <tbody>
+            ${dupeScanData.map(f=>`
+              <tr>
+                <td>${esc(f.name)}</td>
+                <td>${esc(f.email)}</td>
+                <td>${f.dupeSummary.map(d=>`${esc(d.campName)}${d.date?' ('+esc(d.date)+')':''} &times;${d.copies}`).join('<br>')}</td>
+                <td>${f.badgesToRemove}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      <button class="btn-save-avatar" style="margin-top:12px;max-width:320px;" id="btnRemoveDupes" onclick="removeDuplicateCamps()">🗑️ Remove ${totalCamps} Duplicate Camp${totalCamps!==1?'s':''}</button>
+      <div id="dupeRemoveStatus" style="margin-top:8px;font-size:11px;font-weight:700;"></div>
+    </div>
+  `;
+}
+
+async function removeDuplicateCamps(){
+  if(!dupeScanData || !dupeScanData.length) return;
+  const btn = document.getElementById('btnRemoveDupes');
+  const statusEl = document.getElementById('dupeRemoveStatus');
+  btn.disabled = true;
+  btn.textContent = 'Removing...';
+
+  let processed = 0;
+  const total = dupeScanData.length;
+
+  for(const finding of dupeScanData){
+    try{
+      const deleteUpdates = {};
+      finding.removeIds.forEach(id=>{ deleteUpdates[id] = null; });
+      await dbUpd('lb_camp_entries/'+finding.uid, deleteUpdates);
+
+      const curBadges = badges[finding.uid] || 0;
+      const newBadges = Math.max(0, curBadges - finding.badgesToRemove);
+      await dbSet('lb_badges/'+finding.uid, newBadges);
+
+      processed++;
+      statusEl.textContent = `Processed ${processed} / ${total} athletes...`;
+    } catch(ex){
+      statusEl.textContent = `⚠️ Error on ${finding.name}: ${ex.message}`;
+    }
+  }
+
+  statusEl.textContent = `✅ Cleaned up duplicates for ${processed} athlete${processed!==1?'s':''}.`;
+  btn.textContent = 'Done!';
+  dupeScanData = null;
+  setTimeout(()=>{ renderAdminTabContent(); }, 2500);
 }
 
 async function refreshOldDefaultAvatars(){
@@ -1443,6 +1581,15 @@ function normaliseHeader(h){
   return h.replace(/^\ufeff/, '').toLowerCase().replace(/[\s\-_]/g, '');
 }
 
+// Builds a signature for a camp entry used to detect duplicates on re-upload.
+// Two rows are treated as "the same camp" if they share the same camp name and date
+// (case/whitespace-insensitive).
+function campEntrySignature(entry){
+  const name = (entry.campName||'').trim().toLowerCase();
+  const date = (entry.date||'').trim().toLowerCase();
+  return name + '|' + date;
+}
+
 function parseAthleteCsv(file){
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -1526,7 +1673,7 @@ function renderAthleteCsvPreview(){
   el.innerHTML = `
     <p style="font-size:12px;color:var(--ink-dim);margin:14px 0 6px;font-weight:700;">
       ${newCount} new account${newCount!==1?'s':''} to create
-      ${existingCount ? `&middot; ${existingCount} already exist (badges &amp; camp entries will still be added to their record)` : ''}
+      ${existingCount ? `&middot; ${existingCount} already exist (only camps not already on their record will be added)` : ''}
     </p>
     <div style="overflow-x:auto">
       <table class="csv-preview-table">
@@ -1546,7 +1693,7 @@ function renderAthleteCsvPreview(){
         </tbody>
       </table>
     </div>
-    <p style="font-size:11px;color:var(--ink-faint);margin-top:12px;">New accounts use the temporary password <strong style="color:var(--teal)">${TEMP_PASSWORD}</strong> and will be asked to set their own password on first login. Existing athletes will have these camp entries added on top of any badges they already have.</p>
+    <p style="font-size:11px;color:var(--ink-faint);margin-top:12px;">New accounts use the temporary password <strong style="color:var(--teal)">${TEMP_PASSWORD}</strong> and will be asked to set their own password on first login. Existing athletes will only have camps added that aren't already on their record — camps matching an existing name &amp; date won't be duplicated.</p>
     <button class="btn-save-avatar" style="margin-top:10px;max-width:340px;" id="btnRunAthleteImport" onclick="runAthleteImport()">Import ${athleteCsvData.length} Athlete${athleteCsvData.length!==1?'s':''}</button>
     <div id="athleteImportStatus" style="margin-top:10px;font-size:12px;font-weight:700;"></div>
   `;
@@ -1561,14 +1708,20 @@ async function runAthleteImport(){
   let processed = 0, failed = [];
   const total = athleteCsvData.length;
 
+  let duplicatesSkipped = 0;
+
   for(const row of athleteCsvData){
     try{
       let uid;
+      let existingEntries = {};
       if(row.alreadyExists){
         // Find existing athlete by email
         const existing = Object.entries(athletes).find(([,a])=>(a.email||'').toLowerCase()===row.email.toLowerCase());
         uid = existing ? existing[0] : null;
         if(!uid){ failed.push(row.name + ' (could not find existing account)'); continue; }
+        // Pull their current camp entries so we can skip camps they already have on record
+        const entriesSnap = await dbGet('lb_camp_entries/'+uid);
+        existingEntries = entriesSnap.val() || {};
       } else {
         // Create new account
         const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key='+window._auth.app.options.apiKey, {
@@ -1584,19 +1737,30 @@ async function runAthleteImport(){
         });
       }
 
-      // Add camp entries (each gets a unique key)
-      if(row.campEntries.length){
+      // Work out which camp rows are genuinely new for this athlete (skip ones already on record)
+      const existingSignatures = new Set(Object.values(existingEntries).map(campEntrySignature));
+      const newCampEntries = row.campEntries.filter(entry => !existingSignatures.has(campEntrySignature(entry)));
+      const skippedThisRow = row.campEntries.length - newCampEntries.length;
+      duplicatesSkipped += skippedThisRow;
+
+      // Add only the new camp entries (each gets a unique key)
+      if(newCampEntries.length){
         const entryUpdates = {};
-        row.campEntries.forEach(entry=>{
+        newCampEntries.forEach(entry=>{
           const entryId = 'entry_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
           entryUpdates[entryId] = { ...entry, addedAt: Date.now() };
         });
         await dbUpd('lb_camp_entries/'+uid, entryUpdates);
       }
 
+      // Only count badges for camp rows we actually added, plus any badge amount that
+      // wasn't tied to a specific camp (rows with no camp name/date, which can't be deduped).
+      const badgeLessTotal = row.totalBadges - row.campEntries.reduce((s,e)=>s+(e.badges||0),0);
+      const newBadges = newCampEntries.reduce((s,e)=>s+(e.badges||0),0) + badgeLessTotal;
+
       // Increment total badge count (existing + new from this import)
       const curBadges = badges[uid] || 0;
-      await dbSet('lb_badges/'+uid, curBadges + row.totalBadges);
+      await dbSet('lb_badges/'+uid, curBadges + newBadges);
 
       // Save club website if provided
       if(row.website && row.club){
@@ -1614,6 +1778,7 @@ async function runAthleteImport(){
   }
 
   statusEl.innerHTML = `✅ Successfully processed ${processed} athlete${processed!==1?'s':''}.` +
+    (duplicatesSkipped ? `<br>↩️ Skipped ${duplicatesSkipped} camp${duplicatesSkipped!==1?'s':''} already on record (no duplicate badges added).` : '') +
     (failed.length ? `<br>⚠️ ${failed.length} failed: ${failed.join(', ')}` : '');
   btn.textContent = 'Done!';
   athleteCsvData = null;
