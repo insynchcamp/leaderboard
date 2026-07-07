@@ -1175,7 +1175,7 @@ function renderAdminTabContent(){
   else if(curAdminTab === 'import'){
     el.innerHTML = `<div class="lb-section">
       <div class="lb-section-hdr"><h2>Import Athletes &amp; Camp Records</h2></div>
-      <p style="font-size:12px;color:var(--ink-dim);margin-bottom:14px;line-height:1.6;">Upload a CSV with one row per camp attended. Columns: <strong>Name</strong>, <strong>Club</strong>, <strong>Country</strong>, <strong>Club Website</strong>, <strong>Email</strong>, <strong>Camp Date</strong>, <strong>Camp Name</strong>, <strong>Badges</strong>. If an athlete attended multiple camps, give them multiple rows with the same name &amp; email — their badges will total up automatically and each camp will show in their detail view. New accounts use the temporary password <strong style="color:var(--teal)">${TEMP_PASSWORD}</strong> and are asked to set their own password on first login. Re-uploading for an existing athlete will only add camps they don't already have on record (matched by camp name &amp; date) — already-recorded camps and their badges won't be duplicated.</p>
+      <p style="font-size:12px;color:var(--ink-dim);margin-bottom:14px;line-height:1.6;">Upload a CSV with one row per camp attended. Columns: <strong>Name</strong>, <strong>Club</strong>, <strong>Country</strong>, <strong>Club Website</strong>, <strong>Email</strong>, <strong>Camp Date</strong>, <strong>Camp Name</strong>, <strong>Badges</strong>. If an athlete attended multiple camps, give them multiple rows with the same name &amp; email — their badges will total up automatically and each camp will show in their detail view. New accounts use the temporary password <strong style="color:var(--teal)">${TEMP_PASSWORD}</strong> and are asked to set their own password on first login. Re-uploading for an existing athlete will only add camps they don't already have on record (matched by camp name) — already-recorded camps and their badges won't be duplicated.</p>
       <div class="upload-drop" id="athleteCsvDrop" onclick="document.getElementById('athleteCsvFileInput').click()" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="handleAthleteCsvDrop(event)">
         <p>📄 Click to upload or drag & drop your CSV</p>
         <small>Columns: Name, Club, Country, Club Website, Email, Camp Date, Camp Name, Badges</small>
@@ -1257,7 +1257,7 @@ function renderAdminTabContent(){
   else if(curAdminTab === 'cleanup'){
     el.innerHTML = `<div class="lb-section">
       <div class="lb-section-hdr"><h2>Find &amp; Remove Duplicate Camps</h2></div>
-      <p style="font-size:12px;color:var(--ink-dim);margin-bottom:14px;line-height:1.6;">Scans every athlete's camp history for camps recorded more than once (matched by the same camp name &amp; date) — this can happen from a spreadsheet being uploaded twice before duplicate-detection was added. For each duplicate found, the earliest copy is kept and the extra copies are removed, along with the badges they added. Nothing is changed until you review and confirm.</p>
+      <p style="font-size:12px;color:var(--ink-dim);margin-bottom:14px;line-height:1.6;">Scans every athlete's camp history for camps recorded more than once (matched by camp name only, so a mistyped date won't slip past it) — this can happen from a spreadsheet being uploaded twice before duplicate-detection was added. For each duplicate found, the copy dated 2026 is kept (falling back to the earliest upload if there's no clear 2026 copy) and the extra copies are removed, along with the badges they added. Nothing is changed until you review and confirm.</p>
       <button class="btn-mini-save" onclick="scanForDuplicateCamps()" id="btnScanDupes">🔍 Scan for Duplicates</button>
       <div id="dupeScanResults" style="margin-top:14px;"></div>
     </div>`;
@@ -1289,7 +1289,7 @@ async function scanForDuplicateCamps(){
     const entryList = Object.entries(entriesObj).map(([id, entry])=>({ id, ...entry }));
     if(entryList.length < 2) continue;
 
-    // Group entries by camp signature (name + date)
+    // Group entries by camp signature (camp name)
     const groups = {};
     entryList.forEach(entry=>{
       const sig = campEntrySignature(entry);
@@ -1302,8 +1302,14 @@ async function scanForDuplicateCamps(){
     const dupeSummary = [];
     Object.values(groups).forEach(group=>{
       if(group.length < 2) return;
-      // Keep the earliest copy (by addedAt), remove the rest
-      group.sort((a,b)=>(a.addedAt||0)-(b.addedAt||0));
+      // Prefer keeping the copy dated 2026 (the correct camp year) over any other/mistyped
+      // year; if there's no clear 2026 copy (or more than one), fall back to the earliest upload.
+      group.sort((a,b)=>{
+        const aIs2026 = extractYear(a.date) === 2026 ? 0 : 1;
+        const bIs2026 = extractYear(b.date) === 2026 ? 0 : 1;
+        if(aIs2026 !== bIs2026) return aIs2026 - bIs2026;
+        return (a.addedAt||0)-(b.addedAt||0);
+      });
       const [keep, ...extras] = group;
       extras.forEach(e=>{
         removeIds.push(e.id);
@@ -1582,12 +1588,17 @@ function normaliseHeader(h){
 }
 
 // Builds a signature for a camp entry used to detect duplicates on re-upload.
-// Two rows are treated as "the same camp" if they share the same camp name and date
-// (case/whitespace-insensitive).
+// Two rows are treated as "the same camp" if they share the same camp name
+// (case/whitespace-insensitive) — the date is ignored so mistyped/inconsistent
+// dates (e.g. a camp logged as 2027 instead of 2026) still get caught as duplicates.
 function campEntrySignature(entry){
-  const name = (entry.campName||'').trim().toLowerCase();
-  const date = (entry.date||'').trim().toLowerCase();
-  return name + '|' + date;
+  return (entry.campName||'').trim().toLowerCase();
+}
+
+// Extracts a 4-digit year (20xx) from a date string, or null if none found.
+function extractYear(dateStr){
+  const match = (dateStr||'').match(/\b(20\d{2})\b/);
+  return match ? parseInt(match[1]) : null;
 }
 
 function parseAthleteCsv(file){
