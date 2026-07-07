@@ -1305,8 +1305,8 @@ async function scanForDuplicateCamps(){
       // Prefer keeping the copy dated 2026 (the correct camp year) over any other/mistyped
       // year; if there's no clear 2026 copy (or more than one), fall back to the earliest upload.
       group.sort((a,b)=>{
-        const aIs2026 = extractYear(a.date) === 2026 ? 0 : 1;
-        const bIs2026 = extractYear(b.date) === 2026 ? 0 : 1;
+        const aIs2026 = entryYear(a) === 2026 ? 0 : 1;
+        const bIs2026 = entryYear(b) === 2026 ? 0 : 1;
         if(aIs2026 !== bIs2026) return aIs2026 - bIs2026;
         return (a.addedAt||0)-(b.addedAt||0);
       });
@@ -1588,11 +1588,22 @@ function normaliseHeader(h){
 }
 
 // Builds a signature for a camp entry used to detect duplicates on re-upload.
-// Two rows are treated as "the same camp" if they share the same camp name
-// (case/whitespace-insensitive) — the date is ignored so mistyped/inconsistent
-// dates (e.g. a camp logged as 2027 instead of 2026) still get caught as duplicates.
+// Two rows are treated as "the same camp" if they have the same camp name once
+// any 4-digit year (20xx) is stripped out and whitespace/punctuation is normalised —
+// so "Spring Camp 2026" and "Spring Camp 2027" (or a mistyped Camp Date column)
+// still match as the same camp.
 function campEntrySignature(entry){
-  return (entry.campName||'').trim().toLowerCase();
+  return (entry.campName||'')
+    .replace(/\b20\d{2}\b/g, '')
+    .replace(/[^a-z0-9]+/gi, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+// Extracts a 4-digit year (20xx) from a camp entry, checking both the date field
+// and the camp name itself (in case the year was typed into the name instead).
+function entryYear(entry){
+  return extractYear(entry.date) || extractYear(entry.campName) || null;
 }
 
 // Extracts a 4-digit year (20xx) from a date string, or null if none found.
