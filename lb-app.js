@@ -520,13 +520,6 @@ window.onFirebaseLogout = function(){
   showPage('leaderboard');
 };
 
-function switchAuthTab(tab){
-  document.getElementById('tabSI').classList.toggle('active', tab==='signin');
-  document.getElementById('tabSU').classList.toggle('active', tab==='signup');
-  document.getElementById('siForm').style.display = tab==='signin'?'flex':'none';
-  document.getElementById('suForm').style.display = tab==='signup'?'flex':'none';
-}
-
 async function doSignIn(){
   const e=document.getElementById('siEmail').value.trim(),p=document.getElementById('siPw').value;
   const err=document.getElementById('siErr'),btn=document.getElementById('siBtn');
@@ -554,23 +547,6 @@ async function doPasswordReset(){
   } catch(ex){
     showErr(err, authErr(ex.code));
   }
-}
-
-async function doSignUp(){
-  const n=document.getElementById('suName').value.trim();
-  const club=document.getElementById('suClub').value.trim();
-  const e=document.getElementById('suEmail').value.trim();
-  const p=document.getElementById('suPw').value;
-  const err=document.getElementById('suErr'),btn=document.getElementById('suBtn');
-  if(!n||!club||!e||!p){showErr(err,'Please fill in all fields.');return;}
-  if(p.length<6){showErr(err,'Password must be 6+ characters.');return;}
-  btn.disabled=true;btn.textContent='Creating...';
-  try{
-    const c=await window._fbFns.createUserWithEmailAndPassword(window._auth,e,p);
-    await window._fbFns.updateProfile(c.user,{displayName:n});
-    await dbSet('lb_users/'+c.user.uid,{name:n,club:club,email:e,role:'athlete',avatar:DEFAULT_AVATAR,createdAt:Date.now()});
-    await dbSet('lb_badges/'+c.user.uid,0);
-  }catch(ex){showErr(err,authErr(ex.code));btn.disabled=false;btn.textContent='Create Account';}
 }
 
 async function doLogout(){ await window._fbFns.signOut(window._auth); }
@@ -1249,8 +1225,10 @@ function renderAdminTabContent(){
             <div class="admin-athlete-club">${esc(a.email)} &middot; ${esc(a.club||'')}</div>
           </div>
           <div style="font-weight:700;color:var(--gold)">🌟 ${a.badgeCount}</div>
+          <button title="Delete account" style="background:rgba(224,92,58,0.12);border:1px solid rgba(224,92,58,0.3);color:#ff8c74;border-radius:8px;padding:6px 10px;font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;cursor:pointer;margin-left:8px;" onclick="confirmDeleteAthlete('${a.uid}','${esc(a.name).replace(/'/g,"\\'")}','${esc(a.email).replace(/'/g,"\\'")}')">🗑️</button>
         </div>
       `).join('') : `<div class="empty-st"><div class="emoji">🏊‍♀️</div><p>No athletes yet.</p></div>`}
+      <div id="deleteAccountStatus" style="margin-top:10px;font-size:11px;font-weight:700;"></div>
     </div>`;
   }
 
@@ -1261,6 +1239,24 @@ function renderAdminTabContent(){
       <button class="btn-mini-save" onclick="scanForDuplicateCamps()" id="btnScanDupes">🔍 Scan for Duplicates</button>
       <div id="dupeScanResults" style="margin-top:14px;"></div>
     </div>`;
+  }
+}
+
+async function confirmDeleteAthlete(uid, name, email){
+  const ok = window.confirm(`Delete ${name} (${email})?\n\nThis removes their profile, badges, and camp history from the leaderboard. This cannot be undone.\n\nNote: this does NOT delete their login itself — do that separately in the Firebase Console (Authentication → Users) if you want to fully block them from signing in.`);
+  if(!ok) return;
+  const statusEl = document.getElementById('deleteAccountStatus');
+  statusEl.textContent = `Deleting ${name}...`;
+  try{
+    await Promise.all([
+      dbSet('lb_users/'+uid, null),
+      dbSet('lb_badges/'+uid, null),
+      dbSet('lb_camp_entries/'+uid, null),
+    ]);
+    statusEl.textContent = `✅ Deleted ${name}'s data. Remember to also remove their login in the Firebase Console if needed.`;
+    setTimeout(()=>{ renderAdminTabContent(); }, 2000);
+  } catch(ex){
+    statusEl.textContent = `⚠️ Error deleting ${name}: ${ex.message}`;
   }
 }
 
@@ -1985,5 +1981,3 @@ function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.addEventListener('DOMContentLoaded', ()=>{
   document.querySelectorAll('.bkdrop').forEach(b=>b.addEventListener('click', e=>{ if(e.target===b) b.classList.remove('open'); }));
 });
-
-switchAuthTab('signin');

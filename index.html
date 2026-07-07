@@ -468,10 +468,6 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
         <div class="lb-tag">🏆 2026 Badge Leaderboard</div>
       </div>
       <div class="login-card" style="background:none;border:none;padding:0;box-shadow:none;">
-        <div class="tsw">
-          <button class="tsw-btn active" id="tabSI" onclick="switchAuthTab('signin')">Sign In</button>
-          <button class="tsw-btn" id="tabSU" onclick="switchAuthTab('signup')">Create Account</button>
-        </div>
         <div class="lform" id="siForm">
           <div class="fld"><label>Email</label><input type="email" id="siEmail" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doSignIn()"></div>
           <div class="fld"><label>Password</label><input type="password" id="siPw" placeholder="Password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
@@ -480,16 +476,8 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
           <button class="btn-login" id="siBtn" onclick="doSignIn()">Sign In</button>
           <button class="forgot-pw-link" onclick="doPasswordReset()">Forgot your password?</button>
         </div>
-        <div class="lform" id="suForm" style="display:none">
-          <div class="fld"><label>Your Name</label><input type="text" id="suName" placeholder="First name or full name"></div>
-          <div class="fld"><label>Club</label><input type="text" id="suClub" placeholder="Your swimming club"></div>
-          <div class="fld"><label>Email</label><input type="email" id="suEmail" placeholder="your@email.com"></div>
-          <div class="fld"><label>Password</label><input type="password" id="suPw" placeholder="Min 6 characters"></div>
-          <div class="err-msg" id="suErr"></div>
-          <button class="btn-login" id="suBtn" onclick="doSignUp()">Create Account</button>
-        </div>
       </div>
-      <p class="login-hint">Coaches sign in with their admin email &amp; password</p>
+      <p class="login-hint">Don't have an account? Ask your coach to add you.</p>
     </div>
   </div>
 </div>
@@ -606,6 +594,6 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
   <div class="modal" style="max-width:480px;"></div>
 </div>
 
-<script src="lb-app.js?v=23"></script>
+<script src="lb-app.js?v=24"></script>
 </body>
 </html>
