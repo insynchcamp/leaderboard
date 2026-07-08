@@ -208,6 +208,7 @@ function showLevelUpCelebration(level){
   document.getElementById('levelUpLevelName').textContent = level.label;
   overlay.style.display = 'flex';
   launchConfetti();
+  if(level.key==='diamond') launchFireworks();
   setTimeout(()=>{ overlay.classList.add('show'); }, 10);
 }
 
@@ -235,6 +236,44 @@ function launchConfetti(){
     container.appendChild(piece);
   }
   setTimeout(()=>{ container.innerHTML = ''; }, 4500);
+}
+
+// Little firework bursts for reaching Diamond level — a few staggered
+// bursts of sparks radiating outward from random points on screen.
+function launchFireworks(){
+  const container = document.getElementById('fireworkContainer');
+  if(!container) return;
+  container.innerHTML = '';
+  const colors = ['#7dd8ff','#ffc857','#ff6b81','#c084fc','#ffffff','#9b30ff'];
+  const burstCount = 6;
+  const sparksPerBurst = 18;
+
+  for(let b=0; b<burstCount; b++){
+    const burstDelay = b * 260 + Math.random()*150;
+    setTimeout(()=>{
+      const originX = 15 + Math.random()*70; // vw%
+      const originY = 15 + Math.random()*50; // vh%
+      const color = colors[Math.floor(Math.random()*colors.length)];
+      for(let s=0; s<sparksPerBurst; s++){
+        const angle = (s / sparksPerBurst) * Math.PI * 2;
+        const distance = 60 + Math.random()*50;
+        const dx = Math.cos(angle) * distance;
+        const dy = Math.sin(angle) * distance;
+        const spark = document.createElement('div');
+        spark.className = 'firework-spark';
+        spark.style.left = originX + '%';
+        spark.style.top = originY + '%';
+        spark.style.color = color;
+        spark.style.background = color;
+        spark.style.setProperty('--dx', dx + 'px');
+        spark.style.setProperty('--dy', dy + 'px');
+        spark.style.animationDelay = (Math.random()*0.08) + 's';
+        container.appendChild(spark);
+      }
+    }, burstDelay);
+  }
+
+  setTimeout(()=>{ container.innerHTML = ''; }, burstCount*260 + 1600);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1794,7 +1833,7 @@ async function openAthleteDetail(uid){
   const a = { uid, ...athleteData, badgeCount: badges[uid]||0 };
 
   const lvl = getLevel(a.badgeCount);
-  const MAX_BADGES = 15;
+  const MAX_BADGES = LEVELS[LEVELS.length-1].min;
   const trackPct = Math.min(100, (a.badgeCount / MAX_BADGES) * 100);
 
   // Fetch camp entries for this athlete
