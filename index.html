@@ -2,2170 +2,598 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>In Synch ICON Series – Summer 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>In Synch Camp — Leaderboard</title>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, updatePassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  import { getDatabase, ref, set, get, onValue, update } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+  const firebaseConfig = {
+    apiKey: "AIzaSyDqEX_bLCE3qi8zO6v_tu0ydL_y0n0h748",
+    authDomain: "insynch-planner.firebaseapp.com",
+    databaseURL: "https://insynch-planner-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "insynch-planner",
+    storageBucket: "insynch-planner.firebasestorage.app",
+    messagingSenderId: "642746022750",
+    appId: "1:642746022750:web:d9d2b4c43ab82189672dcf"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+  window._auth = auth; window._db = db;
+  window._fbFns = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, updatePassword, sendPasswordResetEmail, ref, set, get, onValue, update };
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const snap = await get(ref(db, 'lb_users/' + user.uid));
+      const profile = snap.val() || {};
+      window._currentUser = { uid: user.uid, email: user.email, name: profile.name || user.displayName || user.email, role: profile.role || 'athlete', club: profile.club || '' };
+      window.onFirebaseLogin(window._currentUser);
+    } else {
+      window._currentUser = null;
+      window.onFirebaseLogout();
+    }
+  });
+</script>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Baloo+2:wght@600;700;800&family=DM+Mono:wght@400;500&display=swap');
+
 :root{
-  --black:#000000;
-  --deep:#0a0010;
-  --card:#0f0020;
-  --purple:#8B00FF;
-  --purple-mid:#6600CC;
-  --purple-glow:#AA44FF;
-  --purple-light:#C084FC;
-  --silver:#C0C0C0;
-  --silver-light:#E8E8E8;
-  --white:#FFFFFF;
-  --muted:#9980BB;
-  --twsc:#2D8B6B;
-  --lac:#1a5fa8;
+  --bg-deep:#0d1b3e;
+  --bg-mid:#162a5c;
+  --bg-card:#1b3270;
+  --bg-card-l:#22397f;
+  --border:rgba(255,255,255,0.1);
+  --ink:#eef2ff;
+  --ink-dim:rgba(238,242,255,0.55);
+  --ink-faint:rgba(238,242,255,0.3);
+
+  --coral:#ff6b81;
+  --coral-l:#ff8fa0;
+  --teal:#9b30ff;
+  --teal-d:#7a1fd6;
+  --sun:#ffc857;
+  --sun-d:#e6a82e;
+  --violet:#a78bfa;
+  --pink-bg:#ff6b81;
+
+  --bronze:#c97f4a;
+  --bronze-l:#e0a571;
+  --silver:#b8c4d4;
+  --silver-l:#dde5ef;
+  --gold:#ffc857;
+  --gold-l:#ffe08a;
+  --diamond:#7dd8ff;
+  --diamond-l:#b8ecff;
 }
-html{scroll-behavior:smooth}
-body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;font-size:16px;line-height:1.6;overflow-x:hidden}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -5%, rgba(155,48,255,0.12), transparent),
+    radial-gradient(ellipse 800px 600px at 100% 10%, rgba(255,107,129,0.1), transparent),
+    var(--bg-deep);
+  color:var(--ink);
+  font-family:'Baloo 2',sans-serif;
+  font-size:14px;
+  min-height:100%;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
+.wave-divider{display:block;width:100%;height:48px;}
 
-/* HERO */
-.hero{position:relative;background:var(--deep);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px 80px;overflow:hidden}
-.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 70% at 50% 30%,rgba(139,0,255,0.35) 0%,transparent 70%);pointer-events:none}
-.hero-stars{position:absolute;inset:0;pointer-events:none}
-.star{position:absolute;background:#fff;border-radius:50%}
-.hero-inner{display:flex;align-items:center;gap:56px;max-width:1100px;width:100%;position:relative;z-index:2}
-.hero-logo{width:380px;min-width:280px;height:auto;display:block;flex-shrink:0}
-.hero-text{flex:1;text-align:left}
-.hero-tagline{font-family:'Barlow Condensed',sans-serif;font-size:clamp(13px,1.5vw,16px);font-weight:600;letter-spacing:4px;color:var(--purple-light);text-transform:uppercase;margin-bottom:16px}
-.hero-headline{font-family:'Barlow Condensed',sans-serif;font-size:clamp(30px,4.5vw,58px);font-weight:900;line-height:1.05;color:var(--white);text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}
-.hero-headline span{color:var(--purple-glow)}
-.hero-sub{font-size:clamp(14px,1.5vw,16px);color:var(--muted);margin-bottom:0}
-.hero-cta-wrap{width:100%;display:flex;justify-content:center;position:relative;z-index:2;margin-top:44px}
-.hero-cta{display:inline-block;background:var(--purple);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:16px 56px;border-radius:4px;text-decoration:none;border:1px solid var(--purple-glow);transition:background .2s}
-.hero-cta:hover{background:var(--purple-mid)}
-.hero-badges{display:flex;gap:0;justify-content:center;margin-top:40px;flex-wrap:nowrap;position:relative;z-index:2;width:100%}
-.badge{text-align:center;flex:1;min-width:0;padding:0 4px}
-.badge-num{font-family:'Barlow Condensed',sans-serif;font-size:clamp(22px,5vw,38px);font-weight:900;color:var(--purple-glow);line-height:1}
-.badge-label{font-size:clamp(8px,2vw,11px);letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px}
-@media(max-width:800px){
-  .hero-inner{flex-direction:column;text-align:center;gap:32px}
-  .hero-logo{width:min(320px,70vw)}
-  .hero-text{text-align:center}
-  .hero-cta-wrap{margin-top:32px}
+/* ══ LOADING ══ */
+#loadingScreen{position:fixed;inset:0;background:var(--bg-deep);display:flex;align-items:center;justify-content:center;z-index:2000;flex-direction:column;gap:16px;}
+.lb-logo-spin{width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid var(--teal);animation:bob 1.6s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+#loadingScreen p{font-family:'Fredoka',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-faint);}
+
+/* ══ LOGIN ══ */
+#loginScreen{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;
+  background:
+    radial-gradient(ellipse 700px 500px at 20% 10%, rgba(155,48,255,0.18), transparent),
+    radial-gradient(ellipse 600px 500px at 90% 80%, rgba(255,107,129,0.16), transparent),
+    var(--bg-deep);
+}
+.login-wrap{width:100%;max-width:420px;padding:20px 0;}
+.login-brand{text-align:center;margin-bottom:26px;}
+.login-logo{width:84px;height:84px;border-radius:50%;object-fit:cover;margin:0 auto 14px;display:block;border:3px solid var(--teal);box-shadow:0 8px 30px rgba(155,48,255,0.3);}
+.login-brand h1{font-weight:700;font-size:24px;color:#fff;line-height:1.2;}
+.login-brand .lb-tag{margin-top:6px;font-size:13px;color:var(--ink-dim);font-weight:600;}
+.login-card{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,0.3);}
+.tsw{display:flex;background:rgba(0,0,0,0.25);border-radius:12px;padding:4px;margin-bottom:18px;}
+.tsw-btn{flex:1;padding:9px;border-radius:9px;border:none;background:none;font-family:'Fredoka',sans-serif;font-size:13px;font-weight:600;color:var(--ink-faint);cursor:pointer;transition:all 0.2s;}
+.tsw-btn.active{background:var(--teal);color:#ffffff;}
+.lform{display:flex;flex-direction:column;gap:12px;}
+.fld{display:flex;flex-direction:column;gap:5px;}
+.fld label{font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-faint);}
+.fld input,.fld select{background:rgba(255,255,255,0.06);border:2px solid rgba(255,255,255,0.1);border-radius:11px;color:#fff;font-family:'Baloo 2',sans-serif;font-size:14px;padding:11px 13px;outline:none;transition:border-color 0.2s;width:100%;appearance:none;}
+.fld input:focus,.fld select:focus{border-color:var(--teal);}
+.fld input::placeholder{color:rgba(255,255,255,0.25);}
+.fld select option{background:#1b3270;}
+.err-msg{font-size:12px;color:#ffb4bd;background:rgba(255,107,129,0.12);border:1px solid rgba(255,107,129,0.3);border-radius:10px;padding:9px 12px;display:none;font-weight:600;}
+.err-msg.show{display:block;}
+.btn-login{width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),var(--teal-d));color:#ffffff;border:none;border-radius:13px;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:15px;transition:all 0.2s;margin-top:2px;box-shadow:0 6px 18px rgba(155,48,255,0.3);}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(155,48,255,0.4);}
+.btn-login:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.login-hint{text-align:center;margin-top:14px;font-size:12px;color:var(--ink-faint);font-weight:600;}
+.forgot-pw-link{display:block;width:100%;text-align:center;background:none;border:none;color:var(--ink-faint);font-size:11px;font-weight:700;font-family:'Fredoka',sans-serif;cursor:pointer;margin-top:10px;text-decoration:underline;}
+.forgot-pw-link:hover{color:var(--teal);}
+.forgot-pw-msg{font-size:12px;color:var(--teal);background:rgba(155,48,255,0.1);border:1px solid rgba(155,48,255,0.3);border-radius:10px;padding:9px 12px;display:none;font-weight:600;text-align:center;}
+.forgot-pw-msg.show{display:block;}
+
+/* ══ APP SHELL ══ */
+#appScreen{display:none;flex-direction:column;height:100%;overflow:hidden;}
+#appScreen.active{display:flex;}
+.app-header{
+  background:linear-gradient(135deg,#0a1530 0%,#1b3270 100%);
+  border-bottom:1px solid var(--border);
+  padding:0 18px;display:flex;align-items:center;gap:12px;height:58px;flex-shrink:0;position:relative;z-index:100;
+}
+.header-logo{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--teal);flex-shrink:0;}
+.header-title{font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;color:#fff;line-height:1.2;white-space:nowrap;}
+.header-title span{display:block;font-family:'DM Mono',monospace;font-size:8px;font-weight:400;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;}
+.nav-tabs{display:flex;gap:3px;background:rgba(0,0,0,0.22);border-radius:11px;padding:4px;}
+.nav-tab{padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:var(--ink-faint);border:none;background:none;font-family:'Fredoka',sans-serif;transition:all 0.15s;white-space:nowrap;}
+.nav-tab:hover{color:#fff;}
+.nav-tab.active{background:var(--teal);color:#ffffff;}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.user-chip{display:flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,0.08);border:1px solid var(--border);}
+.user-chip-avatar{flex-shrink:0;display:flex;align-items:center;}
+.hdr-btn{padding:6px 10px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:9px;color:var(--ink-dim);font-size:10px;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;transition:all 0.15s;white-space:nowrap;}
+.hdr-btn:hover{background:rgba(255,255,255,0.12);color:#fff;}
+.menu-btn{display:none;flex-direction:column;gap:4px;padding:6px;cursor:pointer;border:none;background:none;}
+.menu-btn span{display:block;width:18px;height:2px;background:rgba(255,255,255,0.7);border-radius:2px;}
+.mob-drawer{position:fixed;top:58px;left:0;right:0;background:#162a5c;border-bottom:1px solid var(--border);z-index:500;display:none;flex-direction:column;padding:8px 0;}
+.mob-drawer.open{display:flex;}
+.mob-nav-item{padding:13px 20px;font-size:14px;font-weight:700;color:var(--ink-dim);cursor:pointer;border:none;background:none;font-family:'Fredoka',sans-serif;text-align:left;width:100%;}
+.mob-nav-item.active{color:var(--teal);}
+
+/* ══ PAGES ══ */
+.page{display:none;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.page.active{display:block;}
+.page-fixed-scroll.active{position:fixed!important;top:58px;left:0;right:0;bottom:0;overflow-y:auto!important;display:block!important;z-index:1;-webkit-overflow-scrolling:touch;}
+
+.page-inner{max-width:1100px;margin:0 auto;padding:22px 20px 60px;}
+
+/* ══ HERO ══ */
+.lb-hero{text-align:center;margin-bottom:26px;}
+.lb-hero h1{font-size:clamp(26px,5vw,38px);font-weight:700;color:#fff;line-height:1.15;margin-bottom:6px;}
+.lb-hero h1 .accent{color:var(--teal);}
+.lb-hero p{font-size:14px;color:var(--ink-dim);font-weight:600;}
+
+/* ══ PODIUM ══ */
+.podium-wrap{display:flex;align-items:flex-end;justify-content:center;gap:14px;margin:30px auto 36px;max-width:600px;padding:0 10px;}
+.podium-slot{flex:1;max-width:170px;display:flex;flex-direction:column;align-items:center;}
+.podium-slot.rank-1{order:2;}
+.podium-slot.rank-2{order:1;}
+.podium-slot.rank-3{order:3;}
+.podium-avatar-ring{display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
+.podium-crown{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:26px;}
+.podium-name{font-weight:700;font-size:13px;color:#fff;text-align:center;margin-bottom:2px;}
+.podium-club{font-size:9px;color:var(--ink-faint);text-align:center;margin-bottom:6px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.podium-badges{font-family:'Fredoka',sans-serif;font-weight:700;font-size:13px;color:var(--gold);margin-bottom:8px;}
+.podium-base{width:100%;border-radius:14px 14px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:10px;font-family:'Fredoka',sans-serif;font-weight:700;font-size:28px;color:rgba(255,255,255,0.5);}
+.podium-slot.rank-1 .podium-base{height:96px;background:linear-gradient(180deg,var(--gold),var(--gold-d,#e6a82e));color:#5c4310;}
+.podium-slot.rank-2 .podium-base{height:74px;background:linear-gradient(180deg,var(--silver),#9fb0c4);color:#2a3a4a;}
+.podium-slot.rank-3 .podium-base{height:58px;background:linear-gradient(180deg,var(--bronze),#a5602f);color:#3a200d;}
+.podium-empty{opacity:0.3;}
+
+/* ══ SECTION CARD ══ */
+.lb-section{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:20px 18px;margin-bottom:20px;}
+.lb-section-hdr{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.lb-section-hdr h2{font-size:17px;font-weight:700;color:#fff;}
+.lb-section-hdr .emoji{font-size:18px;}
+
+/* ══ ATHLETE GRID (Rising stars etc) ══ */
+.athlete-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+@media(max-width:900px){.athlete-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:560px){.athlete-grid{grid-template-columns:repeat(2,1fr);}}
+.athlete-card{background:var(--bg-card-l);border:1px solid var(--border);border-radius:16px;padding:14px 10px;text-align:center;transition:transform 0.15s;}
+.athlete-card:hover{transform:translateY(-3px);}
+.athlete-card-avatar{display:flex;justify-content:center;margin:0 auto 8px;}
+.athlete-card-name{font-weight:700;font-size:12px;color:#fff;margin-bottom:2px;}
+.athlete-card-club{font-size:9px;color:var(--ink-faint);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.athlete-card-badges{display:inline-flex;align-items:center;gap:3px;background:rgba(255,200,87,0.12);border:1px solid rgba(255,200,87,0.3);border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700;color:var(--gold);}
+.level-tag{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;margin-top:5px;}
+.level-tag.bronze{background:rgba(201,127,74,0.18);color:var(--bronze-l);}
+.level-tag.silver{background:rgba(184,196,212,0.18);color:var(--silver-l);}
+.level-tag.gold{background:rgba(255,200,87,0.18);color:var(--gold-l);}
+.level-tag.diamond{background:rgba(125,216,255,0.18);color:var(--diamond-l);}
+.level-tag.none{background:rgba(255,255,255,0.08);color:var(--ink-faint);}
+
+/* ══ REWARDS ══ */
+.rewards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+.reward-card{border-radius:16px;padding:16px 14px;text-align:center;position:relative;overflow:hidden;border:1px solid var(--border);}
+.reward-card.bronze{background:linear-gradient(160deg,rgba(201,127,74,0.18),rgba(201,127,74,0.04));}
+.reward-card.silver{background:linear-gradient(160deg,rgba(184,196,212,0.18),rgba(184,196,212,0.04));}
+.reward-card.gold{background:linear-gradient(160deg,rgba(255,200,87,0.2),rgba(255,200,87,0.04));}
+.reward-card.diamond{background:linear-gradient(160deg,rgba(125,216,255,0.2),rgba(125,216,255,0.04));}
+.reward-medal{font-size:34px;margin-bottom:6px;}
+.reward-prize-img-wrap{position:relative;width:100%;height:84px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;}
+.reward-prize-img-wrap::before{content:'';position:absolute;width:90px;height:90px;border-radius:50%;filter:blur(18px);opacity:0.55;z-index:0;}
+.reward-card.bronze .reward-prize-img-wrap::before{background:radial-gradient(circle,#c97f4a,transparent 70%);}
+.reward-card.silver .reward-prize-img-wrap::before{background:radial-gradient(circle,#dde5ef,transparent 70%);}
+.reward-card.gold .reward-prize-img-wrap::before{background:radial-gradient(circle,#ffc857,transparent 70%);}
+.reward-card.diamond .reward-prize-img-wrap::before{background:radial-gradient(circle,#7dd8ff,transparent 70%);}
+.reward-prize-img{position:relative;z-index:1;max-width:84px;max-height:84px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(255,255,255,0.25));}
+.reward-level{font-weight:700;font-size:14px;color:#fff;margin-bottom:2px;}
+.reward-badges-needed{font-size:11px;color:var(--ink-dim);font-weight:600;margin-bottom:8px;}
+.reward-prize{font-size:12px;color:var(--ink-dim);font-weight:700;line-height:1.4;}
+
+/* ══ CLUB TABLE ══ */
+.club-table-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border);}
+.club-table{width:100%;border-collapse:collapse;min-width:480px;}
+.club-table th{background:rgba(0,0,0,0.2);font-family:'Fredoka',sans-serif;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-faint);padding:10px 14px;text-align:left;}
+.club-table td{padding:10px 14px;border-top:1px solid var(--border);font-size:13px;font-weight:600;}
+.club-table tr:hover td{background:rgba(255,255,255,0.03);}
+.club-rank-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:700;font-size:11px;background:rgba(255,255,255,0.08);}
+.club-rank-badge.r1{background:var(--gold);color:#5c4310;}
+.club-rank-badge.r2{background:var(--silver);color:#2a3a4a;}
+.club-rank-badge.r3{background:var(--bronze);color:#3a200d;}
+
+/* ══ FULL RANKINGS LIST ══ */
+.rankings-list{display:flex;flex-direction:column;gap:8px;}
+.rankings-filter-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.rankings-search-input{flex:1;min-width:180px;background:rgba(255,255,255,0.06);border:2px solid var(--border);border-radius:11px;color:#fff;font-family:'Fredoka',sans-serif;font-size:13px;padding:9px 14px;outline:none;transition:border-color 0.2s;}
+.rankings-search-input:focus{border-color:var(--teal);}
+.rankings-search-input::placeholder{color:var(--ink-faint);}
+.rankings-club-select{background:rgba(255,255,255,0.06);border:2px solid var(--border);border-radius:11px;color:#fff;font-family:'Fredoka',sans-serif;font-size:13px;padding:9px 14px;outline:none;cursor:pointer;min-width:140px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(255,255,255,0.4)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:34px;}
+.rankings-club-select:focus{border-color:var(--teal);}
+.rankings-club-select option{background:#1b3270;}
+.rankings-no-results{text-align:center;padding:24px;color:var(--ink-faint);font-size:12px;}
+.rank-row{display:flex;align-items:center;gap:12px;background:var(--bg-card-l);border:1px solid var(--border);border-radius:14px;padding:10px 14px;}
+.rank-num{width:28px;text-align:center;font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;color:var(--ink-faint);flex-shrink:0;}
+.rank-row.is-me{border-color:var(--teal);background:rgba(155,48,255,0.08);}
+.rank-avatar{flex-shrink:0;}
+.rank-info{flex:1;min-width:0;}
+.rank-name{font-weight:700;font-size:13px;color:#fff;}
+.rank-club{font-size:10px;color:var(--ink-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rank-badges{font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;color:var(--gold);white-space:nowrap;}
+
+/* ══ MY PROFILE PAGE ══ */
+.profile-hero{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:22px;}
+.profile-avatar-big{margin-bottom:14px;filter:drop-shadow(0 12px 35px rgba(155,48,255,0.18));}
+.profile-name{font-weight:700;font-size:22px;color:#fff;margin-bottom:3px;}
+.profile-club{font-size:13px;color:var(--ink-dim);font-weight:600;margin-bottom:14px;}
+.profile-rank-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,200,87,0.12);border:1px solid rgba(255,200,87,0.3);border-radius:20px;padding:6px 14px;font-weight:700;font-size:13px;color:var(--gold);}
+.btn-share-progress{margin-top:14px;padding:9px 18px;background:rgba(155,48,255,0.12);border:1px solid rgba(155,48,255,0.35);border-radius:20px;color:var(--teal);font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.15s;}
+.btn-share-progress:hover{background:rgba(155,48,255,0.22);}
+
+.level-progress-card{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:22px;margin-bottom:18px;}
+.level-progress-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;flex-wrap:wrap;gap:6px;}
+.level-progress-hdr h3{font-size:16px;font-weight:700;color:#fff;}
+.level-badges-count{font-family:'Fredoka',sans-serif;font-weight:700;font-size:22px;color:var(--teal);}
+.level-track{position:relative;height:18px;background:rgba(255,255,255,0.07);border-radius:20px;overflow:hidden;margin-bottom:10px;}
+.level-track-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--bronze),var(--silver),var(--gold),var(--diamond));transition:width 0.7s cubic-bezier(0.4,0,0.2,1);position:relative;}
+.level-markers{display:flex;justify-content:space-between;font-size:10px;font-weight:700;color:var(--ink-faint);margin-bottom:4px;}
+.level-marker.reached{color:var(--gold);}
+.level-next-msg{text-align:center;font-size:13px;color:var(--ink-dim);font-weight:600;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.level-next-msg strong{color:var(--teal);}
+
+/* ══ AVATAR BUILDER ══ */
+.avatar-builder{display:grid;grid-template-columns:280px 1fr;gap:24px;}
+@media(max-width:700px){.avatar-builder{grid-template-columns:1fr;}.avatar-preview-pane{position:static;}}
+.avatar-preview-pane{display:flex;flex-direction:column;align-items:center;background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:24px;position:sticky;top:14px;align-self:start;}
+.avatar-preview-circle{width:200px;height:200px;border-radius:50%;background:var(--bg-card-l);border:4px solid var(--teal);margin-bottom:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 35px rgba(155,48,255,0.2);}
+.btn-save-avatar{width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),var(--teal-d));color:#ffffff;border:none;border-radius:13px;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;transition:all 0.2s;}
+.btn-save-avatar:hover{transform:translateY(-1px);}
+.avatar-options{display:flex;flex-direction:column;gap:18px;}
+.avatar-option-group{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;padding:16px;}
+.avatar-option-group h4{font-size:13px;font-weight:700;color:#fff;margin-bottom:12px;}
+.swatch-row{display:flex;gap:8px;flex-wrap:wrap;}
+.swatch{width:38px;height:38px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all 0.15s;flex-shrink:0;}
+.swatch:hover{transform:scale(1.1);}
+.swatch.selected{border-color:var(--teal);box-shadow:0 0 0 2px rgba(155,48,255,0.3);}
+.option-tile-row{display:flex;gap:10px;flex-wrap:wrap;}
+.option-tile{display:flex;flex-direction:column;align-items:center;gap:4px;width:60px;}
+.option-tile-inner{width:56px;height:56px;border-radius:50%;background:var(--bg-card-l);border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:all 0.15s;flex-shrink:0;overflow:hidden;}
+.option-tile-inner:hover{border-color:rgba(155,48,255,0.4);}
+.option-tile-inner.selected{border-color:var(--teal);box-shadow:0 0 0 2px rgba(155,48,255,0.25);}
+.option-tile-inner.avatar-mini-tile img{width:100%;height:100%;object-fit:cover;}
+.option-tile-label{font-size:8px;color:var(--ink-faint);text-align:center;line-height:1.2;font-weight:700;}
+
+/* Logo choice picker */
+.logo-choice-row{display:flex;gap:12px;flex-wrap:wrap;}
+.logo-choice-tile{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:8px;border-radius:14px;border:2px solid var(--border);transition:all 0.15s;width:84px;}
+.logo-choice-tile:hover{border-color:rgba(155,48,255,0.4);}
+.logo-choice-tile.selected{border-color:var(--teal);background:rgba(155,48,255,0.08);}
+.logo-choice-tile.disabled{opacity:0.4;cursor:not-allowed;}
+.logo-choice-preview{width:48px;height:48px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;overflow:hidden;font-family:'Fredoka',sans-serif;}
+.logo-choice-preview img{width:100%;height:100%;object-fit:cover;}
+.logo-choice-label{font-size:10px;font-weight:700;color:var(--ink-dim);text-align:center;}
+
+/* ══ ADMIN PAGE ══ */
+.admin-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+.admin-subtab{padding:8px 16px;border-radius:11px;border:1px solid var(--border);background:var(--bg-card-l);color:var(--ink-dim);font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.15s;}
+.admin-subtab.active{background:var(--teal);color:#ffffff;border-color:var(--teal);}
+.admin-athlete-row{display:flex;align-items:center;gap:12px;background:var(--bg-card-l);border:1px solid var(--border);border-radius:14px;padding:10px 14px;margin-bottom:8px;}
+.admin-athlete-avatar{flex-shrink:0;}
+.admin-athlete-info{flex:1;min-width:0;}
+.admin-athlete-name{font-weight:700;font-size:13px;color:#fff;}
+.admin-athlete-club{font-size:10px;color:var(--ink-faint);}
+.badge-input{width:64px;background:rgba(255,255,255,0.07);border:2px solid var(--border);border-radius:9px;color:#fff;font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;padding:6px 8px;outline:none;text-align:center;}
+.badge-input:focus{border-color:var(--teal);}
+.btn-mini-save{padding:6px 12px;background:rgba(155,48,255,0.15);border:1px solid rgba(155,48,255,0.35);border-radius:8px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Fredoka',sans-serif;}
+.btn-mini-save:hover{background:rgba(155,48,255,0.25);}
+.upload-drop{border:3px dashed var(--border);border-radius:18px;padding:36px 20px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--bg-card-l);}
+.upload-drop:hover,.upload-drop.over{border-color:var(--teal);background:rgba(155,48,255,0.05);}
+.upload-drop p{font-weight:700;color:#fff;margin-bottom:4px;}
+.upload-drop small{color:var(--ink-faint);}
+.csv-preview-table{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px;}
+.csv-preview-table th{background:rgba(0,0,0,0.2);padding:8px 10px;text-align:left;font-weight:700;color:var(--ink-dim);}
+.csv-preview-table td{padding:7px 10px;border-top:1px solid var(--border);}
+.csv-match-ok{color:var(--teal);}
+.csv-match-bad{color:var(--coral);}
+
+/* ══ MODALS ══ */
+.bkdrop{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:600;display:none;align-items:center;justify-content:center;padding:18px;}
+.bkdrop.open{display:flex;}
+.modal{background:var(--bg-card);border:1px solid var(--border);border-radius:22px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;padding:24px;}
+.modal h3{font-weight:700;font-size:18px;color:#fff;margin-bottom:16px;}
+.modal-acts{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+.btn-cancel{padding:9px 16px;background:rgba(255,255,255,0.07);color:var(--ink-dim);border:1px solid var(--border);border-radius:11px;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;}
+.btn-confirm{padding:9px 18px;background:var(--teal);color:#ffffff;border:none;border-radius:11px;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;}
+.modal-close-btn{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;color:var(--ink-dim);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;}
+.modal-close-btn:hover{background:rgba(255,255,255,0.15);color:#fff;}
+#signInModal .modal{position:relative;}
+.hdr-btn-signin{background:var(--teal);color:#ffffff;border-color:var(--teal);font-weight:700;}
+.hdr-btn-signin:hover{background:var(--teal-d);}
+
+.empty-st{text-align:center;padding:40px 20px;color:var(--ink-faint);}
+.empty-st .emoji{font-size:34px;margin-bottom:10px;}
+
+/* ══ LEADERBOARD EXPLAINER ══ */
+.lb-explainer{max-width:560px;margin:14px auto 0;font-size:12px;color:var(--ink-dim);line-height:1.6;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:16px;padding:14px 18px;}
+.coach-announcement{display:flex;align-items:center;gap:10px;max-width:1100px;margin:0 auto 18px;background:linear-gradient(90deg,rgba(155,48,255,0.18),rgba(155,48,255,0.06));border:1px solid rgba(155,48,255,0.35);border-radius:14px;padding:12px 18px;}
+.coach-announcement-icon{font-size:18px;flex-shrink:0;}
+.coach-announcement-text{font-size:13px;font-weight:600;color:#fff;line-height:1.5;}
+
+/* ══ ATHLETE CARD (new labels) ══ */
+.athlete-card{cursor:pointer;}
+.athlete-card-country{font-size:10px;color:var(--ink-faint);margin-bottom:3px;font-weight:600;}
+.athlete-card-level{font-size:10px;color:var(--ink-dim);font-weight:700;margin-bottom:4px;}
+.athlete-card-rising{display:inline-flex;align-items:center;gap:3px;background:rgba(155,48,255,0.12);border:1px solid rgba(155,48,255,0.3);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;color:var(--teal);margin-bottom:5px;}
+.athlete-card-badges{font-size:11px;font-weight:700;color:var(--gold);}
+.rank-row{cursor:pointer;}
+
+/* ══ ATHLETE DETAIL MODAL ══ */
+#athleteDetailModal .modal{padding:26px 22px 22px;position:relative;}
+.ad-header{text-align:center;margin-bottom:18px;}
+.ad-avatar{display:flex;justify-content:center;margin-bottom:10px;}
+.ad-name{font-weight:700;font-size:19px;color:#fff;margin-bottom:3px;}
+.ad-club{font-size:12px;color:var(--ink-dim);font-weight:600;margin-bottom:3px;}
+.ad-country{font-size:11px;color:var(--ink-faint);font-weight:600;margin-bottom:8px;}
+.ad-level-pill{display:inline-block;background:rgba(255,200,87,0.12);border:1px solid rgba(255,200,87,0.3);border-radius:20px;padding:5px 14px;font-weight:700;font-size:12px;color:var(--gold);}
+.ad-progress-section{background:var(--bg-card-l);border-radius:14px;padding:14px 16px;margin-bottom:16px;}
+.ad-progress-hdr{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--ink-dim);margin-bottom:8px;}
+.ad-progress-count{color:var(--teal);}
+.ad-section{margin-bottom:16px;}
+.ad-section-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:10px;}
+.ad-rewards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.ad-reward-pill{display:flex;align-items:center;gap:7px;background:var(--bg-card-l);border:1px solid var(--border);border-radius:12px;padding:8px 10px;}
+.ad-reward-pill.locked{opacity:0.45;}
+.ad-reward-medal{font-size:16px;}
+.ad-reward-label{font-size:11px;font-weight:700;color:#fff;flex:1;}
+.ad-reward-check{color:var(--teal);font-weight:700;}
+.ad-reward-need{font-size:9px;color:var(--ink-faint);white-space:nowrap;}
+.ad-camp-list{display:flex;flex-direction:column;gap:7px;max-height:200px;overflow-y:auto;}
+.camp-entry-row{display:flex;align-items:center;gap:10px;background:var(--bg-card-l);border:1px solid var(--border);border-radius:11px;padding:9px 12px;}
+.camp-entry-stars{font-family:'Fredoka',sans-serif;font-weight:700;color:var(--gold);font-size:13px;white-space:nowrap;}
+.camp-entry-info{flex:1;min-width:0;}
+.camp-entry-date{font-size:10px;color:var(--ink-faint);font-weight:700;}
+.camp-entry-name{font-size:12px;color:#fff;font-weight:600;}
+.ad-total-row{text-align:center;background:rgba(155,48,255,0.08);border:1px solid rgba(155,48,255,0.25);border-radius:12px;padding:10px;font-weight:700;font-size:14px;color:var(--teal);}
+
+/* ══ CLUB DETAIL MODAL ══ */
+#clubDetailModal .modal{padding:26px 22px 22px;position:relative;}
+.club-rank-row{cursor:pointer;}
+.cd-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.cd-logo{width:54px;height:54px;border-radius:12px;background:#fff;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.cd-logo img{width:100%;height:100%;object-fit:cover;}
+.cd-logo-placeholder{width:54px;height:54px;border-radius:12px;background:var(--bg-card-l);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.cd-name{font-weight:700;font-size:18px;color:#fff;}
+.cd-country{font-size:12px;color:var(--ink-dim);font-weight:600;}
+.cd-website-link{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--teal);text-decoration:none;font-weight:700;margin-top:4px;}
+.cd-total-row{text-align:center;background:rgba(255,200,87,0.1);border:1px solid rgba(255,200,87,0.3);border-radius:12px;padding:10px;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:16px;}
+.cd-athlete-list{display:flex;flex-direction:column;gap:8px;}
+.cd-athlete-row{display:flex;align-items:center;gap:10px;background:var(--bg-card-l);border:1px solid var(--border);border-radius:12px;padding:9px 12px;}
+.cd-athlete-name{font-size:12px;font-weight:700;color:#fff;flex:1;}
+.cd-athlete-badges{font-family:'Fredoka',sans-serif;font-weight:700;color:var(--gold);font-size:12px;}
+
+@media(max-width:768px){
+  .nav-tabs{display:none;}
+  .menu-btn{display:flex;}
+  .user-chip span:not(.user-chip-avatar){display:none;}
+  .header-title span{display:none;}
+  .page-inner{padding:16px 14px 50px;}
+  .podium-wrap{gap:8px;padding:0 4px;}
+  .podium-slot{max-width:110px;}
+  .podium-name{font-size:11px;}
+  .podium-club{font-size:8px;max-width:100px;}
+  .podium-badges{font-size:12px;}
+  .ad-rewards-grid{grid-template-columns:1fr;}
+  .cd-header{flex-wrap:wrap;}
+  .admin-tabs{gap:4px;}
+  .admin-subtab{padding:7px 12px;font-size:11px;}
+  .admin-athlete-row{flex-wrap:wrap;}
+  .badge-input{width:54px;}
+  .modal{padding:18px;max-height:85vh;}
+  #athleteDetailModal .modal,#clubDetailModal .modal{padding:20px 16px 16px;}
+  .lb-explainer{padding:12px 14px;font-size:11px;}
 }
 
-/* SECTION HEADERS */
-.section-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:5px;text-transform:uppercase;color:var(--purple-light);text-align:center;margin-bottom:10px}
-.section-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(30px,5vw,50px);font-weight:900;text-align:center;text-transform:uppercase;color:var(--white);margin-bottom:48px}
-.section-title span{color:var(--purple-glow)}
-
-/* COACHES */
-.coaches{background:#050010;padding:40px 24px 56px}
-.coaches-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:3px;max-width:1100px;margin:0 auto}
-.coach-card{background:var(--card);padding:0;border-top:3px solid var(--purple);position:relative;overflow:hidden;cursor:pointer;transition:border-color .2s}
-.coach-card.active,.coach-card:hover{border-top-color:var(--purple-glow)}
-.coach-card.active{background:#150030}
-.coach-photo{width:100%;aspect-ratio:1/1;object-fit:cover;object-position:top center;display:block;background:#0a0020}
-.coach-photo-placeholder{width:100%;aspect-ratio:1/1;background:linear-gradient(135deg,#0d0025 0%,#1a0040 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
-.coach-initial-large{font-family:'Barlow Condensed',sans-serif;font-size:64px;font-weight:900;color:var(--purple-glow);line-height:1;opacity:0.6}
-.coach-photo-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
-.coach-info{padding:24px 24px 28px}
-.coach-name{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;color:var(--white);margin-bottom:4px;letter-spacing:1px}
-.coach-title{font-size:12px;color:var(--purple-light);line-height:1.5;margin-bottom:12px}
-.coach-camps-count{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
-.coach-bio{font-size:13px;color:var(--muted);line-height:1.65;border-top:1px solid #1a0040;padding-top:14px;margin-top:4px}
-.coach-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--purple-glow),transparent)}
-
-/* FILTER BAR */
-.filter-bar{background:#0a0010;padding:20px 24px;border-top:1px solid #1a0040;border-bottom:1px solid #1a0040;position:sticky;top:0;z-index:100}
-.filter-inner{max-width:1100px;margin:0 auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.filter-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-right:4px}
-.filter-btn{background:transparent;border:1px solid #2a0060;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:8px 18px;border-radius:2px;cursor:pointer;transition:all .2s}
-.filter-btn:hover,.filter-btn.active{background:var(--purple);border-color:var(--purple);color:#fff}
-.filter-btn.venue-tw.active{background:var(--twsc);border-color:var(--twsc)}
-.filter-btn.venue-lac.active{background:var(--lac);border-color:var(--lac)}
-
-/* CAMPS */
-.camps{padding:48px 24px 48px;background:var(--black)}
-.camps-inner{max-width:1100px;margin:0 auto}
-.coach-group{margin-bottom:56px}
-.coach-group-header{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:5px;text-transform:uppercase;color:var(--purple-light);margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #1a0040}
-.camp-card{background:var(--card);border:1px solid #1a0040;border-left:4px solid var(--purple);margin-bottom:14px;padding:24px 28px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start;transition:border-color .2s,background .2s}
-.camp-card:hover{border-left-color:var(--purple-glow);background:#120025}
-.camp-card.hidden{display:none}
-.camp-card.venue-tw{border-left-color:var(--twsc)}
-.camp-card.venue-tw:hover{border-left-color:#3db88a}
-.camp-card.venue-lac{border-left-color:var(--lac)}
-.camp-card.venue-lac:hover{border-left-color:#2980d4}
-.camp-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:6px}
-.camp-date{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:var(--white);letter-spacing:1px}
-.camp-theme{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;color:var(--purple-glow);letter-spacing:2px}
-.venue-tag{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:2px;white-space:nowrap}
-.venue-tag.tw{background:rgba(45,139,107,0.15);color:#3db88a;border:1px solid rgba(45,139,107,0.35)}
-.venue-tag.lac{background:rgba(26,95,168,0.15);color:#4da3e8;border:1px solid rgba(26,95,168,0.35)}
-.camp-subheading{font-size:14px;color:var(--silver-light);margin-bottom:14px;font-style:italic;line-height:1.5}
-.camp-meta{display:flex;gap:20px;flex-wrap:wrap}
-.meta-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
-.meta-item strong{color:var(--silver)}
-.camp-coach-row{margin-top:14px;padding-top:14px;border-top:1px solid #1a0040;display:flex;align-items:center;gap:10px}
-.coach-pip{width:32px;height:32px;border-radius:50%;background:var(--purple-mid);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;color:#fff;flex-shrink:0;overflow:hidden}
-.coach-pip img{width:100%;height:100%;object-fit:cover;object-position:top}
-.camp-coach-name{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white);letter-spacing:0.5px}
-.camp-coach-title{font-size:11px;color:var(--purple-light)}
-.camp-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-end;min-width:150px}
-.price{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:900;color:var(--white);text-align:right;line-height:1}
-.price-sub{font-size:10px;color:var(--muted);text-align:right;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
-.btn-book{display:block;background:var(--purple);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:11px 22px;border-radius:3px;text-align:center;text-decoration:none;border:none;cursor:pointer;transition:background .2s;white-space:nowrap}
-.btn-book:hover{background:var(--purple-mid)}
-.btn-waitlist{display:block;background:transparent;color:var(--purple-light);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:9px 22px;border-radius:3px;text-align:center;text-decoration:none;border:1px solid #2a0060;cursor:pointer;transition:all .2s;white-space:nowrap}
-.btn-waitlist:hover{border-color:var(--purple-light);color:#fff}
-
-/* VENUES SECTION */
-.venues{background:#050010;padding:40px 24px 64px}
-.venues-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:3px;max-width:1100px;margin:0 auto}
-@media(max-width:560px){.venues-grid{grid-template-columns:1fr}}
-.venue-card{background:var(--card);overflow:hidden}
-.venue-photos{display:grid;grid-template-columns:1fr 1fr;gap:3px}
-.venue-photo-main{grid-column:1/-1;height:220px;overflow:hidden;position:relative}
-.venue-photo-main img{width:100%;height:100%;object-fit:cover;display:block}
-.venue-photo-placeholder{width:100%;height:100%;background:linear-gradient(135deg,#0d0025,#1a0040);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
-.venue-badge{position:absolute;top:12px;left:12px;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:4px 12px;border-radius:2px}
-.venue-badge.tw{background:var(--twsc);color:#fff}
-.venue-badge.lac{background:var(--lac);color:#fff}
-.venue-details{padding:28px}
-.venue-name{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;color:var(--white);margin-bottom:4px;letter-spacing:1px}
-.venue-address{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5}
-.venue-address a{color:var(--purple-light);text-decoration:none}
-.venue-address a:hover{color:#fff}
-.venue-features{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
-.venue-feature{border-left:2px solid var(--purple);padding-left:12px}
-.venue-feature-title{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--purple-light);margin-bottom:4px}
-.venue-feature-text{font-size:13px;color:var(--muted);line-height:1.5}
-
-/* INFO STRIP */
-.info-strip{background:#0a0010;border-top:1px solid #1a0040;border-bottom:1px solid #1a0040;padding:40px 24px}
-.info-strip-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:32px}
-.info-block{border-left:3px solid var(--purple);padding-left:18px}
-.info-block-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--purple-light);margin-bottom:6px}
-.info-block-text{font-size:13px;color:var(--muted);line-height:1.6}
-
-/* MODALS SHARED */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:999;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto}
-.modal-bg.open{display:flex}
-.modal{background:#0f0020;border:1px solid var(--purple);border-top:4px solid var(--purple-glow);padding:36px 40px 40px;max-width:580px;width:100%;border-radius:4px;position:relative;margin:auto}
-.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:26px;cursor:pointer;line-height:1}
-.modal-close:hover{color:#fff}
-.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;text-transform:uppercase;color:var(--white);margin-bottom:4px}
-.modal-camp{font-family:'Barlow Condensed',sans-serif;font-size:17px;color:var(--purple-glow);margin-bottom:20px;letter-spacing:1px}
-.modal-field{margin-bottom:14px}
-.modal-field label{display:block;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--purple-light);margin-bottom:5px}
-.modal-field input,.modal-field select,.modal-field textarea{width:100%;background:#0a0018;border:1px solid #2a0060;color:#fff;font-family:'Barlow',sans-serif;font-size:14px;padding:11px 14px;border-radius:3px;outline:none;transition:border-color .2s;appearance:none}
-.modal-field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239980BB' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
-.modal-field select option{background:#0f0020}
-.modal-field textarea{resize:vertical;min-height:80px;line-height:1.5}
-.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:var(--purple-glow)}
-.modal-field input::placeholder,.modal-field textarea::placeholder{color:#3a2560}
-.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:500px){.modal-row{grid-template-columns:1fr}}
-.modal-section{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--purple-light);margin:24px 0 14px;padding-bottom:8px;border-bottom:1px solid #1a0040}
-.modal-submit{width:100%;background:var(--purple);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:14px;border:none;border-radius:3px;cursor:pointer;margin-top:16px;transition:background .2s}
-.modal-submit:hover{background:var(--purple-mid)}
-.modal-success{display:none;text-align:center;padding:32px 0}
-.modal-success-icon{font-size:44px;margin-bottom:14px}
-.modal-success-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;text-transform:uppercase;color:var(--purple-glow);margin-bottom:8px}
-.modal-success-text{color:var(--muted);font-size:14px;line-height:1.7}
-/* Steps */
-.step-bar{display:flex;gap:6px;margin-bottom:28px}
-.step-pip{height:3px;flex:1;background:#1a0040;border-radius:2px;transition:background .3s}
-.step-pip.done{background:var(--purple-glow)}
-.step-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:20px}
-.step{display:none}
-.step.active{display:block}
-.step-nav{display:flex;gap:12px;margin-top:20px}
-.btn-prev{flex:1;background:transparent;color:var(--purple-light);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:12px;border:1px solid #2a0060;border-radius:3px;cursor:pointer;transition:all .2s}
-.btn-prev:hover{border-color:var(--purple-light);color:#fff}
-.btn-next{flex:2;background:var(--purple);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:12px;border:none;border-radius:3px;cursor:pointer;transition:background .2s}
-.btn-next:hover{background:var(--purple-mid)}
-/* Camp checkboxes */
-.camp-checks{display:flex;flex-direction:column;gap:8px}
-.camp-check-item{display:flex;align-items:center;gap:12px;background:#0a0018;border:1px solid #1a0040;border-radius:3px;padding:12px 14px;cursor:pointer;transition:border-color .2s}
-.camp-check-item:hover{border-color:#2a0060}
-.camp-check-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--purple-glow);flex-shrink:0;cursor:pointer}
-.camp-check-label{font-size:13px;color:var(--silver-light);line-height:1.4}
-.camp-check-label strong{color:var(--purple-glow);font-family:'Barlow Condensed',sans-serif;font-size:15px;letter-spacing:1px;display:block}
-/* Consent */
-.consent-box{background:#050010;border:1px solid #1a0040;border-radius:3px;padding:16px;font-size:12px;color:var(--muted);line-height:1.7;max-height:140px;overflow-y:auto;margin-bottom:14px}
-.consent-check{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--silver-light);margin-bottom:10px;cursor:pointer}
-.consent-check input{width:16px;height:16px;accent-color:var(--purple-glow);flex-shrink:0;margin-top:2px}
-/* Waitlist modal (simple) */
-.wl-modal-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;text-transform:uppercase;color:var(--white);margin-bottom:4px}
-.wl-modal-camp{font-family:'Barlow Condensed',sans-serif;font-size:17px;color:var(--purple-glow);margin-bottom:24px;letter-spacing:1px}
-
-/* CALENDAR */
-.calendar-section{background:var(--black);padding:40px 24px 64px;border-top:1px solid #1a0040}
-.calendar-outer{max-width:1100px;margin:0 auto}
-.calendar-months{display:flex;flex-direction:column;gap:40px}
-.cal-month{background:var(--card);border:1px solid #1a0040;border-radius:4px;overflow:hidden}
-.cal-month-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.cal-month-header{background:#0a0018;padding:16px 24px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--purple-light);border-bottom:1px solid #1a0040}
-.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(52px,1fr));border-left:1px solid #1a0040;min-width:364px}
-.cal-dow{background:#080015;padding:10px 4px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);border-right:1px solid #1a0040;border-bottom:1px solid #1a0040}
-.cal-day{border-right:1px solid #1a0040;border-bottom:1px solid #1a0040;min-height:80px;padding:8px 6px;position:relative;vertical-align:top}
-.cal-day.empty{background:#050010}
-.cal-day.has-camp{background:#0a0018;cursor:default}
-.cal-day-num{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--muted);margin-bottom:6px;line-height:1}
-.cal-day.has-camp .cal-day-num{color:var(--white)}
-.cal-day.out-of-range{background:#030008;opacity:0.4}
-.cal-day.out-of-range .cal-day-num{color:#2a1a40}
-.cal-camp-pill{display:block;padding:4px 7px;border-radius:2px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;margin-bottom:4px;line-height:1.3;border:none;text-align:left;width:100%;transition:opacity .15s}
-.cal-camp-pill:hover{opacity:0.8}
-.cal-camp-pill.tw{background:var(--twsc)}
-.cal-camp-pill.lac{background:#1a5fa8}
-.cal-camp-pill.residential{background:#7a5c00}
-.cal-camp-pill.fairfield{background:#6b00aa}
-.cal-camp-pill.whiteoak{background:#c05000}
-@media(max-width:640px){
-  .cal-day{min-height:56px;padding:5px 4px}
-  .cal-day-num{font-size:12px}
-  .cal-camp-pill{font-size:10px;padding:3px 5px}
-}
-@media(max-width:420px){
-  .cal-dow{font-size:9px;padding:8px 2px;letter-spacing:0}
-  .cal-camp-pill{font-size:9px}
-}
-
-/* FOOTER */
-footer{background:#000;padding:48px 24px 40px;text-align:center;border-top:1px solid #1a0040}
-.footer-links{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
-.footer-links a{color:var(--purple-light);text-decoration:none;font-size:14px}
-.footer-links a:hover{color:#fff}
-.footer-divider{width:60px;height:1px;background:var(--purple);margin:0 auto 20px}
-.footer-logo{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:4px;text-transform:uppercase;color:#ffffff;margin-top:8px}
-
-/* RESPONSIVE */
-@media(max-width:680px){
-  .camp-card{grid-template-columns:1fr}
-  .camp-actions{flex-direction:row;align-items:center;flex-wrap:wrap;justify-content:space-between}
-  .venue-features{grid-template-columns:1fr}
+/* ══ LEVEL UP CELEBRATION ══ */
+.level-up-overlay{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;background:rgba(13,27,62,0);transition:background 0.3s;padding:20px;}
+.level-up-overlay.show{background:rgba(13,27,62,0.82);}
+.level-up-card{background:var(--bg-card);border:2px solid var(--teal);border-radius:24px;padding:36px 30px;text-align:center;max-width:340px;width:100%;box-shadow:0 20px 60px rgba(155,48,255,0.4);transform:scale(0.85);opacity:0;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);position:relative;z-index:2;}
+.level-up-overlay.show .level-up-card{transform:scale(1);opacity:1;}
+.level-up-medal{font-size:64px;margin-bottom:10px;animation:levelUpBounce 0.6s ease;}
+@keyframes levelUpBounce{0%{transform:scale(0);}60%{transform:scale(1.2);}100%{transform:scale(1);}}
+.level-up-title{font-family:'Fredoka',sans-serif;font-weight:700;font-size:26px;color:#fff;margin-bottom:6px;}
+.level-up-subtitle{font-size:14px;color:var(--ink-dim);font-weight:600;margin-bottom:20px;}
+.level-up-subtitle span{color:var(--teal);font-weight:700;}
+.confetti-container{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1;}
+.confetti-piece{position:absolute;top:-20px;opacity:0.9;animation:confettiFall linear forwards;}
+@keyframes confettiFall{
+  0%{transform:translateY(0) rotate(0deg);opacity:1;}
+  100%{transform:translateY(110vh) rotate(720deg);opacity:0.3;}
 }
 @media(max-width:480px){
+  .podium-wrap{gap:6px;}
+  .podium-slot{max-width:96px;}
+  .podium-avatar-ring{width:56px!important;height:56px!important;}
+  .podium-slot.rank-1 .podium-avatar-ring{width:68px!important;height:68px!important;}
+  .athlete-grid{grid-template-columns:repeat(2,1fr);}
+  .rewards-grid{grid-template-columns:1fr 1fr;}
+  .lb-hero h1{font-size:22px;}
+  .lb-section{padding:14px 12px;}
+  .login-wrap{padding:18px 16px!important;}
 }
-
-/* ── ADMIN ── */
-.admin-fab{position:fixed;bottom:8px;right:8px;width:24px;height:24px;border-radius:50%;background:transparent;border:none;cursor:default;z-index:9000;opacity:0;font-size:1px;color:transparent}
-.admin-fab:hover{opacity:0}
-.admin-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9001;overflow-y:auto;padding:32px 16px}
-.admin-overlay.open{display:block}
-.admin-panel{max-width:700px;margin:0 auto;background:#0f0020;border:1px solid var(--purple);border-top:4px solid var(--purple-glow);border-radius:4px;padding:36px 40px 48px}
-.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}
-.admin-title{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;text-transform:uppercase;color:var(--white);letter-spacing:2px}
-.admin-close{background:none;border:none;color:var(--muted);font-size:28px;cursor:pointer;line-height:1}
-.admin-close:hover{color:#fff}
-.admin-login{max-width:360px;margin:0 auto;text-align:center}
-.admin-login-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;color:var(--white);margin-bottom:20px}
-.admin-pw-field{width:100%;background:#0a0018;border:1px solid #2a0060;color:#fff;font-family:'Barlow',sans-serif;font-size:16px;padding:13px 16px;border-radius:3px;outline:none;margin-bottom:14px;text-align:center;letter-spacing:4px}
-.admin-pw-field:focus{border-color:var(--purple-glow)}
-.admin-pw-btn{width:100%;background:var(--purple);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:13px;border:none;border-radius:3px;cursor:pointer}
-.admin-pw-btn:hover{background:var(--purple-mid)}
-.admin-pw-error{color:#ff4466;font-size:13px;margin-top:8px;display:none}
-.admin-section-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--purple-light);margin:28px 0 14px;padding-bottom:8px;border-bottom:1px solid #1a0040}
-.admin-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #0a0018;gap:12px}
-.admin-row-label{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white);flex:1}
-.admin-row-sub{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
-.admin-toggle-group{display:flex;gap:6px;flex-shrink:0}
-.admin-toggle{background:transparent;border:1px solid #2a0060;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:2px;cursor:pointer;transition:all .15s}
-.admin-toggle.active-live{background:#2D8B6B;border-color:#2D8B6B;color:#fff}
-.admin-toggle.active-soon{background:#7a5c00;border-color:#aa8800;color:#fff}
-.admin-toggle.active-hidden{background:#3a0010;border-color:#660022;color:#ff8899}
-.admin-toggle.active-soldout{background:#4a0000;border-color:#880000;color:#ff6666}
-.admin-save-bar{margin-top:32px;display:flex;gap:12px;align-items:center}
-.admin-save-btn{background:var(--purple);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:13px 32px;border:none;border-radius:3px;cursor:pointer;transition:background .2s}
-.admin-save-btn:hover{background:var(--purple-mid)}
-.admin-save-status{font-size:13px;color:var(--purple-light)}
-.admin-logout{background:transparent;border:1px solid #2a0060;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:8px 18px;border-radius:2px;cursor:pointer;margin-left:auto}
-.admin-logout:hover{border-color:#fff;color:#fff}
-/* Camp status badges */
-.status-soon{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:2px;background:rgba(122,92,0,0.25);color:#cc9900;border:1px solid rgba(122,92,0,0.4);margin-left:10px;vertical-align:middle}
-
-/* NAV */
-.site-nav{position:sticky;top:0;z-index:200;background:#050010;border-bottom:1px solid #1a0040}
-.site-nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:0;overflow-x:auto;scrollbar-width:none}
-.site-nav-inner::-webkit-scrollbar{display:none}
-.nav-link{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:14px 20px;text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;flex-shrink:0}
-.nav-link:hover{color:var(--white)}
-.nav-link.active,.nav-link:hover{border-bottom-color:var(--purple-glow);color:var(--white)}
-.nav-link.external{color:var(--purple-light)}
-
-/* 1:1 SESSIONS */
-.onetone{background:#050010;padding:56px 24px 72px}
-.onetone-inner{max-width:1100px;margin:0 auto}
-.onetone-intro{text-align:center;color:var(--muted);font-size:15px;max-width:640px;margin:0 auto 48px;line-height:1.7}
-.onetone-coach-block{margin-bottom:56px}
-.onetone-coach-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid #1a0040}
-.onetone-coach-pip{width:48px;height:48px;border-radius:50%;background:var(--purple-mid);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff;flex-shrink:0;overflow:hidden}
-.onetone-coach-pip img{width:100%;height:100%;object-fit:cover;object-position:top}
-.onetone-coach-name{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;color:var(--white);letter-spacing:1px}
-.onetone-coach-sub{font-size:12px;color:var(--purple-light)}
-.onetone-sessions{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
-.onetone-card{background:var(--card);border:1px solid #1a0040;border-left:4px solid var(--purple);padding:20px 22px}
-.onetone-card.full{border-left-color:#660022;opacity:0.6}
-.onetone-date{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--white);margin-bottom:2px}
-.onetone-time{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--purple-glow);letter-spacing:1px;margin-bottom:6px}
-.onetone-location{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
-.onetone-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.onetone-price{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--white)}
-.onetone-price span{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;line-height:1}
-.btn-onetone-book{background:var(--purple);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:9px 18px;border-radius:3px;border:none;cursor:pointer;transition:background .2s;white-space:nowrap}
-.btn-onetone-book:hover{background:var(--purple-mid)}
-.btn-onetone-full{background:#1a0010;color:#ff4466;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:9px 18px;border-radius:3px;border:1px solid #330011;cursor:default;white-space:nowrap}
-
-/* 1:1 BOOKING MODAL */
-.ot-modal-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;text-transform:uppercase;color:var(--white);margin-bottom:4px}
-.ot-modal-session{font-family:'Barlow Condensed',sans-serif;font-size:16px;color:var(--purple-glow);margin-bottom:20px;letter-spacing:1px;line-height:1.4}
-
-
-/* MEET THE TEAM */
-.team-section{background:#000;padding:40px 24px 64px;border-top:1px solid #1a0040}
-.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:3px;max-width:1100px;margin:0 auto}
-.team-card{background:var(--card);padding:0;border-top:3px solid #3a0060}
-.team-photo{width:100%;aspect-ratio:1/1;object-fit:cover;object-position:top center;display:block;background:#0a0020}
-.team-photo-placeholder{width:100%;aspect-ratio:1/1;background:linear-gradient(135deg,#0d0025,#1a0040);display:flex;align-items:center;justify-content:center}
-.team-initial{font-family:'Barlow Condensed',sans-serif;font-size:64px;font-weight:900;color:#3a0060;line-height:1}
-.team-info{padding:24px 24px 28px}
-.team-role{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#7a44aa;margin-bottom:6px}
-.team-name{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;color:var(--white);margin-bottom:4px;letter-spacing:1px}
-.team-title{font-size:12px;color:var(--purple-light);line-height:1.5;margin-bottom:12px}
-.team-bio{font-size:13px;color:var(--muted);line-height:1.65;border-top:1px solid #1a0040;padding-top:14px;margin-top:4px}
-.team-quals{margin-top:12px;padding-top:12px;border-top:1px solid #1a0040}
-.team-quals-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#7a44aa;margin-bottom:8px}
-.team-qual-item{font-size:12px;color:var(--muted);line-height:1.6;padding-left:12px;position:relative;margin-bottom:2px}
-.team-qual-item::before{content:'·';position:absolute;left:0;color:#3a0060}
-
 </style>
 </head>
 <body>
 
-<!-- BOOKING MODAL -->
-<div class="modal-bg" id="bookingModal" role="dialog" aria-modal="true" aria-label="Book a camp">
-  <div class="modal">
-    <button class="modal-close" onclick="closeBooking()" aria-label="Close">×</button>
-    <div id="bookingForm">
-      <div class="modal-title">Book your place</div>
-      <div class="modal-camp" id="bookingCampLabel"></div>
-      <div class="step-bar">
-        <div class="step-pip done" id="pip1"></div>
-        <div class="step-pip" id="pip2"></div>
-        <div class="step-pip" id="pip3"></div>
-        <div class="step-pip" id="pip4"></div>
-      </div>
-
-      <!-- STEP 1: Camp selection -->
-      <div class="step active" id="bstep1">
-        <div class="step-label">Step 1 of 4 · Select camps</div>
-        <div class="camp-checks" id="campChecklist">
-          <label class="camp-check-item"><input type="checkbox" value="ICON Romane: PRECISION · Tue 4 Aug · Tunbridge Wells · £55"><div class="camp-check-label"><strong>ICON Romane: PRECISION</strong>Tue 4 Aug · Tunbridge Wells Sports Centre · £55</div></label>
-          <label class="camp-check-item"><input type="checkbox" value="ICON Romane: PERFORM · Wed 5 Aug · Tunbridge Wells · £55"><div class="camp-check-label"><strong>ICON Romane: PERFORM</strong>Wed 5 Aug · Tunbridge Wells Sports Centre · £55</div></label>
-          <label class="camp-check-item"><input type="checkbox" value="ICON Romane: ELEVATE · Thu 6 Aug · London Aquatics Centre · £40"><div class="camp-check-label"><strong>ICON Romane: ELEVATE</strong>Thu 6 Aug · London Aquatics Centre · £40</div></label>
-          <label class="camp-check-item"><input type="checkbox" value="ICON Romane: CONTROL · Fri 7 Aug · London Aquatics Centre · £40"><div class="camp-check-label"><strong>ICON Romane: CONTROL</strong>Fri 7 Aug · London Aquatics Centre · £40</div></label>
-          <label class="camp-check-item"><input type="checkbox" value="ICON Olivia: ARTISTRY · Tue 11 Aug · Tunbridge Wells · £55"><div class="camp-check-label"><strong>ICON Olivia: ARTISTRY</strong>Tue 11 Aug · Tunbridge Wells Sports Centre · £55</div></label>
-          <label class="camp-check-item"><input type="checkbox" value="ICON Olivia: EXPRESSION · Wed 12 Aug · Tunbridge Wells · £55"><div class="camp-check-label"><strong>ICON Olivia: EXPRESSION</strong>Wed 12 Aug · Tunbridge Wells Sports Centre · £55</div></label>
-          <label class="camp-check-item"><input type="checkbox" value="ICON Leilani: POWER · Thu 13 Aug · Tunbridge Wells · £55"><div class="camp-check-label"><strong>ICON Leilani: POWER</strong>Thu 13 Aug · Tunbridge Wells Sports Centre · £55</div></label>
-          <label class="camp-check-item"><input type="checkbox" value="ICON Leilani: ASCEND · Fri 14 Aug · Tunbridge Wells · £55"><div class="camp-check-label"><strong>ICON Leilani: ASCEND</strong>Fri 14 Aug · Tunbridge Wells Sports Centre · £55</div></label>
-          <label class="camp-check-item"><input type="checkbox" value="ICON Kseniya: INTENSITY · Mon 17 Aug · Tunbridge Wells · £55"><div class="camp-check-label"><strong>ICON Kseniya: INTENSITY</strong>Mon 17 Aug · Tunbridge Wells Sports Centre · £55</div></label>
-          <label class="camp-check-item"><input type="checkbox" value="ICON Kseniya: MASTERY · Wed 19 Aug · London Aquatics Centre · £40"><div class="camp-check-label"><strong>ICON Kseniya: MASTERY</strong>Tue 18 Aug · London Aquatics Centre · £40</div></label>
-          <label class="camp-check-item"><input type="checkbox" value="ICON Kseniya: RISE · Tue 18 Aug · Tunbridge Wells · £55"><div class="camp-check-label"><strong>ICON Kseniya: RISE</strong>Tue 18 Aug · Tunbridge Wells Sports Centre · £55</div></label>
-        </div>
-        <div class="step-nav"><button class="btn-next" style="flex:1" onclick="bNext(1)">Next →</button></div>
-      </div>
-
-      <!-- STEP 2: Athlete & parent details -->
-      <div class="step" id="bstep2">
-        <div class="step-label">Step 2 of 4 · Athlete &amp; parent details</div>
-        <div class="modal-section">Athlete information</div>
-        <div class="modal-row">
-          <div class="modal-field"><label>First name *</label><input type="text" id="b-afirst" placeholder="First name"></div>
-          <div class="modal-field"><label>Last name *</label><input type="text" id="b-alast" placeholder="Last name"></div>
-        </div>
-        <div class="modal-row">
-          <div class="modal-field"><label>Date of birth *</label><input type="date" id="b-dob"></div>
-          <div class="modal-field"><label>Gender *</label><select id="b-gender"><option value="">Select...</option><option>Female</option><option>Male</option><option>Non-binary</option><option>Prefer not to say</option></select></div>
-        </div>
-        <div class="modal-field"><label>Artistic swimming club *</label><input type="text" id="b-club" placeholder="Club name"></div>
-        <div class="modal-field"><label>Training hours per week *</label><select id="b-hours"><option value="">Select...</option><option>1–3 hours</option><option>4–6 hours</option><option>7–10 hours</option><option>10+ hours</option></select></div>
-        <div class="modal-section">Parent / guardian information</div>
-        <div class="modal-row">
-          <div class="modal-field"><label>First name *</label><input type="text" id="b-pfirst" placeholder="First name"></div>
-          <div class="modal-field"><label>Last name *</label><input type="text" id="b-plast" placeholder="Last name"></div>
-        </div>
-        <div class="modal-field"><label>Email address *</label><input type="email" id="b-email" placeholder="your@email.com"></div>
-        <div class="modal-field"><label>Phone number *</label><input type="tel" id="b-phone" placeholder="+44 ..."></div>
-        <div class="modal-field"><label>Street address *</label><input type="text" id="b-addr1" placeholder="Street address"></div>
-        <div class="modal-field"><label>Town / City *</label><input type="text" id="b-addr2" placeholder="Town or city"></div>
-        <div class="modal-row">
-          <div class="modal-field"><label>State / County / Region</label><input type="text" id="b-state" placeholder="Optional"></div>
-          <div class="modal-field"><label>Postcode / ZIP *</label><input type="text" id="b-postcode" placeholder="Postcode or ZIP"></div>
-        </div>
-        <div class="modal-field"><label>Country *</label><select id="b-country"><option value="">Select country...</option><option>United Kingdom</option><option>Ireland</option><option>United States</option><option>Canada</option><option>Australia</option><option>New Zealand</option><option>France</option><option>Germany</option><option>Netherlands</option><option>Belgium</option><option>Spain</option><option>Italy</option><option>Portugal</option><option>Switzerland</option><option>Austria</option><option>Sweden</option><option>Norway</option><option>Denmark</option><option>Finland</option><option>Poland</option><option>Czech Republic</option><option>Hungary</option><option>Romania</option><option>Ukraine</option><option>Russia</option><option>Japan</option><option>South Korea</option><option>China</option><option>Singapore</option><option>South Africa</option><option>Brazil</option><option>Argentina</option><option>Mexico</option><option>Other</option></select></div>
-        <div class="step-nav"><button class="btn-prev" onclick="bGo(1)">← Back</button><button class="btn-next" onclick="bNext(2)">Next →</button></div>
-      </div>
-
-      <!-- STEP 3: Medical & emergency -->
-      <div class="step" id="bstep3">
-        <div class="step-label">Step 3 of 4 · Medical &amp; emergency information</div>
-        <div class="modal-section">Emergency contact</div>
-        <div class="modal-row">
-          <div class="modal-field"><label>First name *</label><input type="text" id="b-efirst" placeholder="First name"></div>
-          <div class="modal-field"><label>Last name *</label><input type="text" id="b-elast" placeholder="Last name"></div>
-        </div>
-        <div class="modal-row">
-          <div class="modal-field"><label>Relationship *</label><select id="b-erel"><option value="">Select...</option><option>Mother</option><option>Father</option><option>Grandparent</option><option>Aunt</option><option>Uncle</option><option>Sibling</option><option>Other</option></select></div>
-          <div class="modal-field"><label>Phone number *</label><input type="tel" id="b-ephone" placeholder="+44 ..."></div>
-        </div>
-        <div class="modal-section">Medical information</div>
-        <div class="modal-field"><label>Allergies, chronic illness or medical conditions *</label><textarea id="b-medical" placeholder="Please describe any relevant conditions, or write 'None'"></textarea></div>
-        <div class="modal-field"><label>Does the athlete use an inhaler? *</label><textarea id="b-inhaler" placeholder="Yes / No — if yes, please provide instructions"></textarea></div>
-        <div class="modal-field"><label>Regular medication? *</label><textarea id="b-meds" placeholder="Yes / No — if yes, please describe"></textarea></div>
-        <div class="step-nav"><button class="btn-prev" onclick="bGo(2)">← Back</button><button class="btn-next" onclick="bNext(3)">Next →</button></div>
-      </div>
-
-      <!-- STEP 4: Consents & submit -->
-      <div class="step" id="bstep4">
-        <div class="step-label">Step 4 of 4 · Consent &amp; confirmation</div>
-        <div class="modal-section">Photo &amp; video consent</div>
-        <label class="consent-check"><input type="checkbox" id="b-photo1"><span>I consent to In Synch ICON Series taking photographs and videos of my child during camp sessions.</span></label>
-        <label class="consent-check"><input type="checkbox" id="b-photo2"><span>I grant In Synch full rights to use images/video for publicity, social media, and fundraising purposes. Athletes will never be named publicly.</span></label>
-        <div class="modal-section">Medical release authorisation</div>
-        <div class="consent-box">As parent and/or guardian of the named athlete, I hereby authorise the diagnosis and treatment by a qualified and licensed medical professional of the minor child in the event of a medical emergency which, in the opinion of the attending medical professional, requires immediate attention to prevent further endangerment of the minor's life, physical disfigurement, physical impairment, or other undue pain or suffering. Permission is granted to the attending physician to proceed with any medical or minor surgical treatment, x-ray examination and immunisations. Permission is also granted to In Synch ICON Series and its affiliates including Directors, Coaches, Supervisors and Team Managers to provide needed emergency treatment prior to the child's admission to a medical facility.</div>
-        <label class="consent-check"><input type="checkbox" id="b-medical-consent" required><span>I confirm I have read and agree to the medical release authorisation above. *</span></label>
-
-        <div class="modal-section">Registration confirmation</div>
-        <label class="consent-check"><input type="checkbox" id="b-reg-consent" required><span>By submitting this form I am providing an electronic signature with the same effect as a manual signature, confirming all information provided is accurate and complete. *</span></label>
-        <div class="modal-field" style="margin-top:16px"><label>How did you hear about the ICON Series?</label><input type="text" id="b-source" placeholder="e.g. Instagram, coach, friend..."></div>
-        <div class="modal-field"><label>Any other information or requests?</label><textarea id="b-notes" placeholder="Optional"></textarea></div>
-        <div class="step-nav"><button class="btn-prev" onclick="bGo(3)">← Back</button></div>
-        <button class="modal-submit" onclick="submitBooking()">Submit booking request</button>
-        <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:12px;line-height:1.6">We will confirm your place and send bank transfer payment details to your email within 48 hours. Places are only secured once payment is received.</p>
-      </div>
-    </div>
-
-    <div class="modal-success" id="bookingSuccess">
-      <div class="modal-success-icon">⭐</div>
-      <div class="modal-success-title">Booking request received!</div>
-      <div class="modal-success-text">Thank you — we'll confirm your place and send payment details to<br><strong id="b-confirm-email" style="color:var(--purple-glow)"></strong><br>within 48 hours.</div>
-    </div>
-  </div>
+<div id="loadingScreen">
+  <img src="https://i.ibb.co/4n7TcPdP/Front-in-synch.png" class="lb-logo-spin" alt="In Synch">
+  <p>Loading leaderboard...</p>
 </div>
 
-<!-- WAITLIST MODAL -->
-<div class="modal-bg" id="waitlistModal" role="dialog" aria-modal="true" aria-label="Join waitlist">
-  <div class="modal">
-    <button class="modal-close" onclick="closeWaitlist()" aria-label="Close">×</button>
-    <div id="wlForm">
-      <div class="wl-modal-title">Join the waitlist</div>
-      <div class="wl-modal-camp" id="modalCampName"></div>
-      <div class="modal-field"><label for="wl-name">Your full name</label><input type="text" id="wl-name" placeholder="Your name" autocomplete="name"></div>
-      <div class="modal-field"><label for="wl-email">Email address</label><input type="email" id="wl-email" placeholder="your@email.com" autocomplete="email"></div>
-      <div class="modal-field"><label for="wl-phone">Phone number</label><input type="tel" id="wl-phone" placeholder="+44 ..." autocomplete="tel"></div>
-      <div class="modal-field"><label for="wl-athlete">Athlete's name</label><input type="text" id="wl-athlete" placeholder="Who is attending?"></div>
-      <button class="modal-submit" onclick="submitWaitlist()">Add me to the waitlist</button>
-    </div>
-    <div class="modal-success" id="wlSuccess">
-      <div class="modal-success-icon">⭐</div>
-      <div class="modal-success-title">You're on the list!</div>
-      <div class="modal-success-text">We'll be in touch as soon as a place opens up for<br><strong id="successCamp" style="color:var(--purple-glow)"></strong>.</div>
-    </div>
-  </div>
-</div>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-stars" id="heroStars"></div>
-  <div class="hero-inner">
-    <img src="logo.png" alt="In Synch ICON Series Summer 2026" class="hero-logo" onerror="this.style.display='none';document.getElementById('heroLogoFallback').style.display='flex'">
-    <div id="heroLogoFallback" style="display:none;flex-direction:column;justify-content:center;width:380px;min-width:280px;flex-shrink:0">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:clamp(28px,4vw,48px);font-weight:900;letter-spacing:4px;text-transform:uppercase;color:#fff">IN SYNCH <span style="color:var(--purple-glow)">ICON Series</span></div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:clamp(14px,2vw,20px);letter-spacing:6px;color:var(--purple-light);margin-top:8px">Summer 2026</div>
-    </div>
-    <div class="hero-text">
-      <p class="hero-tagline">★ Train with an ICON. Become an ICON. ★</p>
-      <h1 class="hero-headline">IN SYNCH ICON Series<br><span>Summer 2026</span></h1>
-      <p class="hero-sub">Elite-level artistic swimming day camps across August 2026. Small groups. World-class coaching. Unforgettable experience.</p>
-    </div>
-  </div>
-  <div class="hero-cta-wrap">
-    <a href="#camps" class="hero-cta">View all camps</a>
-  </div>
-  <div class="hero-badges">
-    <div class="badge"><div class="badge-num">11</div><div class="badge-label">Camp days</div></div>
-    <div class="badge"><div class="badge-num">5</div><div class="badge-label">ICON coaches</div></div>
-    <div class="badge"><div class="badge-num">20</div><div class="badge-label">Max per day</div></div>
-    <div class="badge"><div class="badge-num">4</div><div class="badge-label">Venues</div></div>
-  </div>
-</section>
-
-
-<!-- NAV -->
-<nav class="site-nav" id="siteNav">
-  <div class="site-nav-inner">
-    <a class="nav-link" href="#coaches">Coaches</a>
-    <a class="nav-link" href="#camps">Camps</a>
-    <a class="nav-link" href="#onetone">1:1 Sessions</a>
-    <a class="nav-link" href="#venues">Locations</a>
-    <a class="nav-link" href="#calendar">Calendar</a>
-    <a class="nav-link external" href="https://leaderboard.insynchcamp.com" target="_blank">Leaderboard ↗</a>
-  </div>
-</nav>
-
-<!-- COACHES -->
-<section class="coaches" id="coaches">
-  <p class="section-label">Your coaches</p>
-  <h2 class="section-title">Meet the <span>ICONs</span></h2>
-  <div class="coaches-grid">
-
-    <div class="coach-card" onclick="filterCoach('romane')" id="coach-romane" data-coach-id="romane">
-      <img src="romane.jpg" alt="Romane Temessek" class="coach-photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <div class="coach-photo-placeholder" style="display:none"><div class="coach-initial-large">RT</div></div>
-      <div class="coach-info">
-        <div class="coach-name">Romane Temessek</div>
-        <div class="coach-title">French Artistic Swimming National Team · World Youth Solo Champion 2023</div>
-        <div class="coach-camps-count">4 camps · 4–7 Aug · tap to filter</div>
-        <div class="coach-bio">Romane Temessek is an international artistic swimmer representing France on the world stage and a member of the French Artistic Swimming National Team. A former World Youth Champion in solo and a World Championship finalist, she is part of an exciting new generation pushing the sport forward.<br><br>Known for her precision, expressive artistry, and powerful presence in the water, Romane brings elite-level experience and modern technique to her coaching. This August, she travels from France to the UK to inspire and develop the next generation of artistic swimmers.</div>
+<div class="bkdrop" id="signInModal">
+  <div class="modal" style="max-width:430px;padding:0;overflow:hidden;">
+    <button class="modal-close-btn" onclick="closeModal('signInModal')">&times;</button>
+    <div class="login-wrap" style="padding:28px 26px;">
+      <div class="login-brand">
+        <img src="https://i.ibb.co/4n7TcPdP/Front-in-synch.png" class="login-logo" alt="In Synch">
+        <h1>In Synch Camp</h1>
+        <div class="lb-tag">🏆 2026 Badge Leaderboard</div>
       </div>
-    </div>
-
-    <div class="coach-card" onclick="filterCoach('olivia')" id="coach-olivia" data-coach-id="olivia">
-      <img src="olivia.jpg" alt="Olivia Federici" class="coach-photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <div class="coach-photo-placeholder" style="display:none"><div class="coach-initial-large">OF</div></div>
-      <div class="coach-info">
-        <div class="coach-name">Olivia Federici</div>
-        <div class="coach-title">Ex GB Artistic Swimming National Team · Three-Time Olympian</div>
-        <div class="coach-camps-count">2 camps · 11–12 Aug · tap to filter</div>
-        <div class="coach-bio">Olivia Federici is an Olympian and one of Great Britain's most accomplished artistic swimmers, having represented Team GB at the Olympic Games and multiple World and European Championships. A Commonwealth medalist and experienced international competitor, she has been a key figure in British artistic swimming for over a decade.<br><br>Known for her precision, creativity, and performance quality, Olivia brings a wealth of elite experience to her coaching. She is passionate about developing athletes' artistic expression, confidence, and love for the sport, inspiring the next generation to perform at their best.</div>
-      </div>
-    </div>
-
-    <div class="coach-card" onclick="filterCoach('leilani')" id="coach-leilani" data-coach-id="leilani">
-      <img src="leilani.jpg" alt="Leilani Torres" class="coach-photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <div class="coach-photo-placeholder" style="display:none"><div class="coach-initial-large">LT</div></div>
-      <div class="coach-info">
-        <div class="coach-name">Leilani Torres</div>
-        <div class="coach-title">International Artistic Swimming Consultant · 2004 Olympian</div>
-        <div class="coach-camps-count">2 camps · 13–14 Aug · tap to filter</div>
-        <div class="coach-bio">Leilani Torres is an Olympian and internationally respected artistic swimming coach, mentor, and educator. She represented Puerto Rico at the Olympic Games and has since built a global coaching career, working with athletes and national teams across Europe, the Americas, and beyond.<br><br>Known for her technical expertise and ability to develop both athletes and coaches, Leilani now leads education programmes for World Aquatics and supports swimmers at all levels. Her coaching combines high-performance knowledge with a passion for helping athletes grow in confidence, skill, and understanding of the sport.</div>
-      </div>
-    </div>
-
-    <div class="coach-card" onclick="filterCoach('kseniya')" id="coach-kseniya" data-coach-id="kseniya">
-      <img src="kseniya.jpg" alt="Kseniya Sydorenko" class="coach-photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <div class="coach-photo-placeholder" style="display:none"><div class="coach-initial-large">KS</div></div>
-      <div class="coach-info">
-        <div class="coach-name">Kseniya Sydorenko</div>
-        <div class="coach-title">Ex Ukrainian Artistic Swimming National Team · Four-Time Olympian</div>
-        <div class="coach-camps-count">3 camps · 17–19 Aug · tap to filter</div>
-        <div class="coach-bio">Kseniya Sydorenko is an Olympic medalist and one of Ukraine's most accomplished artistic swimmers, having competed at four Olympic Games and winning bronze at Tokyo 2020. She is also a multiple-time European champion and World Championship medallist, with over a decade of experience competing at the highest level of the sport.<br><br>Known for her consistency, strength, and technical excellence, Kseniya brings a wealth of elite performance knowledge to her coaching. She is passionate about sharing the discipline, detail, and mindset required to succeed at the top level of artistic swimming.</div>
-      </div>
-    </div>
-
-    <div class="coach-card" onclick="filterCoach('bianca')" id="coach-bianca" data-coach-id="bianca">
-      <img src="bianca.jpg" alt="Bianca Hofstatter" class="coach-photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <div class="coach-photo-placeholder" style="display:none"><div class="coach-initial-large">BH</div></div>
-      <div class="coach-info">
-        <div class="coach-name">Bianca Hofstatter</div>
-        <div class="coach-title">Former Austrian &amp; USA National Team Artistic Swimmer</div>
-        <div class="coach-camps-count">1:1 sessions available throughout August</div>
-        <div class="coach-bio">Bianca Hofstatter is a former artistic swimmer who represented both the Austrian and USA National Teams. Born in the United States, she moved to Austria for four years — graduating high school there before returning to the USA — competing internationally along the way.<br><br>Her achievements include winning gold at the 2019 Swedish Open, Austrian Nationals, and Hungarian Open in Solo, silver at the 2021 U.S. Junior National Championship in Free Solo, and bronze at the 2019 Ukrainian Open. She has since built an international coaching career, leading training sessions for athletes all over the world and coaching at In Synch Summer Residential Camp in both 2025 and 2026.</div>
-      </div>
-    </div>
-
-    <div class="coach-card" id="coach-daisy" data-coach-id="daisy">
-      <img src="daisy.jpg" alt="Daisy Gunn" class="coach-photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <div class="coach-photo-placeholder" style="display:none"><div class="coach-initial-large">DG</div></div>
-      <div class="coach-info">
-        <div class="coach-name">Daisy Gunn</div>
-        <div class="coach-title">Former Great Britain National Team Artistic Swimmer</div>
-        <div class="coach-camps-count">Assistant coaching throughout the ICON Series</div>
-        <div class="coach-bio">Daisy Gunn is a former member of the Great Britain Senior National Team, having represented her country in international competitions at the highest level. Since retiring from elite competition, Daisy has transitioned into coaching, bringing her extensive experience and love for the sport to help athletes of all ages achieve their goals.<br><br>Her achievements include Silver in Free Team at the French Open 2020, 4th place at the European Championships 2022, and 6th place at the World Championships 2022.<br><br>Daisy is a Level 1 Swim England Artistic Swimming Coach and holds a Safeguarding and Protecting Children &amp; Young People qualification. She also holds a degree in Sports Rehabilitation from the University of Bristol.</div>
-      </div>
-    </div>
-
-    <div class="coach-card" id="coach-maisie" data-coach-id="maisie">
-      <img src="maisie.jpg" alt="Maisie Wright" class="coach-photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <div class="coach-photo-placeholder" style="display:none"><div class="coach-initial-large">MW</div></div>
-      <div class="coach-info">
-        <div class="coach-name">Maisie Wright</div>
-        <div class="coach-title">Camp Director &amp; Assistant Coaching Throughout the ICON Series</div>
-        <div class="coach-camps-count">Head Coach · London Regional AS &amp; Erith &amp; District AS</div>
-        <div class="coach-bio">Maisie Wright is Camp Director for In Synch's ICON Series this August. As current Head Coach at London Regional Artistic Swimming and Erith &amp; District AS Club, Maisie brings exceptional organisational and coaching expertise to the series.<br><br>In 2023 she was awarded South East Swim England Artistic Swimming Coach of the Year. She is a Swim England Level 2 Artistic Swimming Coach with a comprehensive set of qualifications across coaching, safeguarding, and athlete welfare.<br><br>Qualifications include: Swim England Level 2 Artistic Swimming Coach · STA Award in Swimming Teaching · Enhanced DBS Check · UK Coaching Safeguarding &amp; Protecting Children &amp; Young People · Safeguarding Deaf and Disabled Children · Mental Health Youth Awareness Training · Level 3 Certificate in Counselling Studies · RLSS National Rescue Award for Teachers and Coaches · Swim England Level 2 Team Manager.</div>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-
-<!-- FILTER BAR -->
-<div class="filter-bar" id="filterBar">
-  <div class="filter-inner">
-    <span class="filter-label">Filter:</span>
-    <button class="filter-btn active" onclick="filterAll(this)">All camps</button>
-    <button class="filter-btn venue-tw" onclick="filterVenue('tw',this)">Tunbridge Wells Sports Centre</button>
-    <button class="filter-btn venue-lac" onclick="filterVenue('lac',this)">London Aquatics Centre</button>
-    <div style="width:1px;height:20px;background:#2a0060;margin:0 4px;flex-shrink:0"></div>
-    <a href="#calendar" class="filter-btn" style="text-decoration:none;background:#5a00a0;border-color:#7b00cc;color:#fff">🗓 Summer camp calendar</a>
-  </div>
-</div>
-
-<!-- CAMPS -->
-<section class="camps" id="camps">
-  <div class="camps-inner">
-
-    <!-- ROMANE -->
-    <div class="coach-group" data-group="romane">
-      <div class="coach-group-header">Romane Temessek · France Artistic Swimming National Team · 4–7 August 2026</div>
-
-      <div class="camp-card venue-tw" data-coach="romane" data-venue="tw" id="camp-precision" data-camp-id="precision">
-        <div>
-          <div class="camp-top"><span class="camp-date">Tue 4 Aug</span><span class="camp-theme">ICON Romane: PRECISION</span><span class="venue-tag tw">Tunbridge Wells Sports Centre</span></div>
-          <div class="camp-subheading">Master figures, sculling technique, and body positions with control, accuracy, and elite-level detail.</div>
-          <div class="camp-meta">
-            <span class="meta-item">🕙 <strong>10:00am – 4:00pm</strong></span>
-            <span class="meta-item">🏊 <strong>4h pool</strong> + 1h land</span>
-            <span class="meta-item">🎂 <strong>Ages 10–18</strong></span>
-            <span class="meta-item">👥 <strong>Max 20 places</strong></span>
-          </div>
-          <div class="camp-coach-row">
-            <div class="coach-pip" id="pip-romane-1"><img src="romane.jpg" alt="Romane" onerror="this.parentElement.textContent='RT'"></div>
-            <div><div class="camp-coach-name">Romane Temessek</div><div class="camp-coach-title">French Artistic Swimming National Team · World Youth Solo Champion 2023 + 2 assistant coaches</div></div>
-          </div>
-        </div>
-        <div class="camp-actions">
-          <div><div class="price">£55</div><div class="price-sub">per athlete</div></div>
-          <button class="btn-book" onclick="openBooking(this)">Book now</button>
-          <button class="btn-waitlist" onclick="openWaitlist('ICON Romane · PRECISION · Tue 4 Aug')">Join waitlist</button>
+      <div class="login-card" style="background:none;border:none;padding:0;box-shadow:none;">
+        <div class="lform" id="siForm">
+          <div class="fld"><label>Email</label><input type="email" id="siEmail" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+          <div class="fld"><label>Password</label><input type="password" id="siPw" placeholder="Password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+          <div class="err-msg" id="siErr"></div>
+          <div class="forgot-pw-msg" id="resetMsg"></div>
+          <button class="btn-login" id="siBtn" onclick="doSignIn()">Sign In</button>
+          <button class="forgot-pw-link" onclick="doPasswordReset()">Forgot your password?</button>
         </div>
       </div>
-
-      <div class="camp-card venue-tw" data-coach="romane" data-venue="tw" id="camp-perform" data-camp-id="perform">
-        <div>
-          <div class="camp-top"><span class="camp-date">Wed 5 Aug</span><span class="camp-theme">ICON Romane: PERFORM</span><span class="venue-tag tw">Tunbridge Wells Sports Centre</span></div>
-          <div class="camp-subheading">Learn, refine, and perform a complete routine in just one day — bringing artistry, timing, and confidence together.</div>
-          <div class="camp-meta">
-            <span class="meta-item">🕙 <strong>10:00am – 4:00pm</strong></span>
-            <span class="meta-item">🏊 <strong>4h pool</strong> + 1h land</span>
-            <span class="meta-item">🎂 <strong>Ages 10–18</strong></span>
-            <span class="meta-item">👥 <strong>Max 20 places</strong></span>
-          </div>
-          <div class="camp-coach-row">
-            <div class="coach-pip"><img src="romane.jpg" alt="Romane" onerror="this.parentElement.textContent='RT'"></div>
-            <div><div class="camp-coach-name">Romane Temessek</div><div class="camp-coach-title">French Artistic Swimming National Team · World Youth Solo Champion 2023 + 2 assistant coaches</div></div>
-          </div>
-        </div>
-        <div class="camp-actions">
-          <div><div class="price">£55</div><div class="price-sub">per athlete</div></div>
-          <button class="btn-book" onclick="openBooking(this)">Book now</button>
-          <button class="btn-waitlist" onclick="openWaitlist('ICON Romane · PERFORM · Wed 5 Aug')">Join waitlist</button>
-        </div>
-      </div>
-
-      <div class="camp-card venue-lac" data-coach="romane" data-venue="lac" id="camp-elevate" data-camp-id="elevate">
-        <div>
-          <div class="camp-top"><span class="camp-date">Thu 6 Aug</span><span class="camp-theme">ICON Romane: ELEVATE</span><span class="venue-tag lac">London Aquatics Centre</span></div>
-          <div class="camp-subheading">Develop height, power, and explosive thrusts &amp; boosts to rise higher, sharper, and stronger in the water.</div>
-          <div class="camp-meta">
-            <span class="meta-item">🕙 <strong>10:00am – 1:30pm</strong></span>
-            <span class="meta-item">🏊 <strong>2.5h pool</strong> + 1h land</span>
-            <span class="meta-item">🎂 <strong>Ages 10–18</strong></span>
-            <span class="meta-item">👥 <strong>Max 20 places</strong></span>
-          </div>
-          <div class="camp-coach-row">
-            <div class="coach-pip"><img src="romane.jpg" alt="Romane" onerror="this.parentElement.textContent='RT'"></div>
-            <div><div class="camp-coach-name">Romane Temessek</div><div class="camp-coach-title">French Artistic Swimming National Team · World Youth Solo Champion 2023 + 2 assistant coaches</div></div>
-          </div>
-        </div>
-        <div class="camp-actions">
-          <div><div class="price">£40</div><div class="price-sub">per athlete</div></div>
-          <button class="btn-book" onclick="openBooking(this)">Book now</button>
-          <button class="btn-waitlist" onclick="openWaitlist('ICON Romane · ELEVATE · Thu 6 Aug')">Join waitlist</button>
-        </div>
-      </div>
-
-      <div class="camp-card venue-lac" data-coach="romane" data-venue="lac" id="camp-control" data-camp-id="control">
-        <div>
-          <div class="camp-top"><span class="camp-date">Fri 7 Aug</span><span class="camp-theme">ICON Romane: CONTROL</span><span class="venue-tag lac">London Aquatics Centre</span></div>
-          <div class="camp-subheading">Refine stability, accuracy, and body awareness for cleaner, consistent execution of figures and technical skills.</div>
-          <div class="camp-meta">
-            <span class="meta-item">🕙 <strong>11:00am – 2:30pm</strong></span>
-            <span class="meta-item">🏊 <strong>2.5h pool</strong> + 1h land</span>
-            <span class="meta-item">🎂 <strong>Ages 10–18</strong></span>
-            <span class="meta-item">👥 <strong>Max 20 places</strong></span>
-          </div>
-          <div class="camp-coach-row">
-            <div class="coach-pip"><img src="romane.jpg" alt="Romane" onerror="this.parentElement.textContent='RT'"></div>
-            <div><div class="camp-coach-name">Romane Temessek</div><div class="camp-coach-title">French Artistic Swimming National Team · World Youth Solo Champion 2023 + 2 assistant coaches</div></div>
-          </div>
-        </div>
-        <div class="camp-actions">
-          <div><div class="price">£40</div><div class="price-sub">per athlete</div></div>
-          <button class="btn-book" onclick="openBooking(this)">Book now</button>
-          <button class="btn-waitlist" onclick="openWaitlist('ICON Romane · CONTROL · Fri 7 Aug')">Join waitlist</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- OLIVIA -->
-    <div class="coach-group" data-group="olivia">
-      <div class="coach-group-header">Olivia Federici · Ex GB Artistic Swimming National Team · 11–12 August 2026</div>
-
-      <div class="camp-card venue-tw" data-coach="olivia" data-venue="tw" id="camp-artistry" data-camp-id="artistry">
-        <div>
-          <div class="camp-top"><span class="camp-date">Tue 11 Aug</span><span class="camp-theme">ICON Olivia: ARTISTRY</span><span class="venue-tag tw">Tunbridge Wells Sports Centre</span></div>
-          <div class="camp-subheading">Develop expression, creativity, and performance quality in every movement.</div>
-          <div class="camp-meta">
-            <span class="meta-item">🕙 <strong>10:00am – 4:00pm</strong></span>
-            <span class="meta-item">🏊 <strong>2.5h pool</strong> + 2.5h land</span>
-            <span class="meta-item">🎂 <strong>Ages 10–18</strong></span>
-            <span class="meta-item">👥 <strong>Max 20 places</strong></span>
-          </div>
-          <div class="camp-coach-row">
-            <div class="coach-pip"><img src="olivia.jpg" alt="Olivia" onerror="this.parentElement.textContent='OF'"></div>
-            <div><div class="camp-coach-name">Olivia Federici</div><div class="camp-coach-title">Ex GB Artistic Swimming National Team · Three-Time Olympian + 2 assistant coaches</div></div>
-          </div>
-        </div>
-        <div class="camp-actions">
-          <div><div class="price">£55</div><div class="price-sub">per athlete</div></div>
-          <button class="btn-book" onclick="openBooking(this)">Book now</button>
-          <button class="btn-waitlist" onclick="openWaitlist('ICON Olivia · ARTISTRY · Tue 11 Aug')">Join waitlist</button>
-        </div>
-      </div>
-
-      <div class="camp-card venue-tw" data-coach="olivia" data-venue="tw" id="camp-expression" data-camp-id="expression">
-        <div>
-          <div class="camp-top"><span class="camp-date">Wed 12 Aug</span><span class="camp-theme">ICON Olivia: EXPRESSION</span><span class="venue-tag tw">Tunbridge Wells Sports Centre</span></div>
-          <div class="camp-subheading">Bring routines to life through emotion, interpretation, and connection to music.</div>
-          <div class="camp-meta">
-            <span class="meta-item">🕙 <strong>10:00am – 4:00pm</strong></span>
-            <span class="meta-item">🏊 <strong>2.5h pool</strong> + 2.5h land</span>
-            <span class="meta-item">🎂 <strong>Ages 10–18</strong></span>
-            <span class="meta-item">👥 <strong>Max 20 places</strong></span>
-          </div>
-          <div class="camp-coach-row">
-            <div class="coach-pip"><img src="olivia.jpg" alt="Olivia" onerror="this.parentElement.textContent='OF'"></div>
-            <div><div class="camp-coach-name">Olivia Federici</div><div class="camp-coach-title">Ex GB Artistic Swimming National Team · Three-Time Olympian + 2 assistant coaches</div></div>
-          </div>
-        </div>
-        <div class="camp-actions">
-          <div><div class="price">£55</div><div class="price-sub">per athlete</div></div>
-          <button class="btn-book" onclick="openBooking(this)">Book now</button>
-          <button class="btn-waitlist" onclick="openWaitlist('ICON Olivia · EXPRESSION · Wed 12 Aug')">Join waitlist</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- LEILANI -->
-    <div class="coach-group" data-group="leilani">
-      <div class="coach-group-header">Leilani Torres · International Artistic Swimming Consultant · 13–14 August 2026</div>
-
-      <div class="camp-card venue-tw" data-coach="leilani" data-venue="tw" id="camp-power" data-camp-id="power">
-        <div>
-          <div class="camp-top"><span class="camp-date">Thu 13 Aug</span><span class="camp-theme">ICON Leilani: POWER</span><span class="venue-tag tw">Tunbridge Wells Sports Centre</span></div>
-          <div class="camp-subheading">Build strength, stability, and explosive movement to enhance every element of your performance.</div>
-          <div class="camp-meta">
-            <span class="meta-item">🕙 <strong>10:00am – 4:00pm</strong></span>
-            <span class="meta-item">🏊 <strong>4h pool</strong> + 1h land</span>
-            <span class="meta-item">🎂 <strong>Ages 10–18</strong></span>
-            <span class="meta-item">👥 <strong>Max 20 places</strong></span>
-          </div>
-          <div class="camp-coach-row">
-            <div class="coach-pip"><img src="leilani.jpg" alt="Leilani" onerror="this.parentElement.textContent='LT'"></div>
-            <div><div class="camp-coach-name">Leilani Torres</div><div class="camp-coach-title">International Artistic Swimming Consultant · 2004 Olympian + 2 assistant coaches</div></div>
-          </div>
-        </div>
-        <div class="camp-actions">
-          <div><div class="price">£55</div><div class="price-sub">per athlete</div></div>
-          <button class="btn-book" onclick="openBooking(this)">Book now</button>
-          <button class="btn-waitlist" onclick="openWaitlist('ICON Leilani · POWER · Thu 13 Aug')">Join waitlist</button>
-        </div>
-      </div>
-
-      <div class="camp-card venue-tw" data-coach="leilani" data-venue="tw" id="camp-ascend" data-camp-id="ascend">
-        <div>
-          <div class="camp-top"><span class="camp-date">Fri 14 Aug</span><span class="camp-theme">ICON Leilani: ASCEND</span><span class="venue-tag tw">Tunbridge Wells Sports Centre</span></div>
-          <div class="camp-subheading">Take your performance to the next level with high-level training and challenge.</div>
-          <div class="camp-meta">
-            <span class="meta-item">🕙 <strong>10:00am – 4:00pm</strong></span>
-            <span class="meta-item">🏊 <strong>4h pool</strong> + 1h land</span>
-            <span class="meta-item">🎂 <strong>Ages 10–18</strong></span>
-            <span class="meta-item">👥 <strong>Max 20 places</strong></span>
-          </div>
-          <div class="camp-coach-row">
-            <div class="coach-pip"><img src="leilani.jpg" alt="Leilani" onerror="this.parentElement.textContent='LT'"></div>
-            <div><div class="camp-coach-name">Leilani Torres</div><div class="camp-coach-title">International Artistic Swimming Consultant · 2004 Olympian + 2 assistant coaches</div></div>
-          </div>
-        </div>
-        <div class="camp-actions">
-          <div><div class="price">£55</div><div class="price-sub">per athlete</div></div>
-          <button class="btn-book" onclick="openBooking(this)">Book now</button>
-          <button class="btn-waitlist" onclick="openWaitlist('ICON Leilani · ASCEND · Fri 14 Aug')">Join waitlist</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- KSENIYA -->
-    <div class="coach-group" data-group="kseniya">
-      <div class="coach-group-header">Kseniya Sydorenko · Ukrainian Olympian, Tokyo 2020 · 18–19 August 2026</div>
-
-      <div class="camp-card venue-tw" data-coach="kseniya" data-venue="tw" id="camp-intensity" data-camp-id="intensity">
-        <div>
-          <div class="camp-top"><span class="camp-date">Mon 17 Aug</span><span class="camp-theme">ICON Kseniya: INTENSITY</span><span class="venue-tag tw">Tunbridge Wells Sports Centre</span></div>
-          <div class="camp-subheading">Train with focus, energy, and purpose to push beyond your limits.</div>
-          <div class="camp-meta">
-            <span class="meta-item">🕙 <strong>10:00am – 4:00pm</strong></span>
-            <span class="meta-item">🏊 <strong>4h pool</strong> + 1h land</span>
-            <span class="meta-item">🎂 <strong>Ages 10–18</strong></span>
-            <span class="meta-item">👥 <strong>Max 20 places</strong></span>
-          </div>
-          <div class="camp-coach-row">
-            <div class="coach-pip"><img src="kseniya.jpg" alt="Kseniya" onerror="this.parentElement.textContent='KS'"></div>
-            <div><div class="camp-coach-name">Kseniya Sydorenko</div><div class="camp-coach-title">Ex Ukrainian Artistic Swimming National Team · Four-Time Olympian + 2 assistant coaches</div></div>
-          </div>
-        </div>
-        <div class="camp-actions">
-          <div><div class="price">£55</div><div class="price-sub">per athlete</div></div>
-          <button class="btn-book" onclick="openBooking(this)">Book now</button>
-          <button class="btn-waitlist" onclick="openWaitlist('ICON Kseniya · INTENSITY · Mon 17 Aug')">Join waitlist</button>
-        </div>
-      </div>
-
-      <div class="camp-card venue-tw" data-coach="kseniya" data-venue="tw" id="camp-rise" data-camp-id="rise">
-        <div>
-          <div class="camp-top"><span class="camp-date">Tue 18 Aug</span><span class="camp-theme">ICON Kseniya: RISE</span><span class="venue-tag tw">Tunbridge Wells Sports Centre</span></div>
-          <div class="camp-subheading">Increase elevation, control your height, and command attention above the water.</div>
-          <div class="camp-meta">
-            <span class="meta-item">🕙 <strong>10:00am – 4:00pm</strong></span>
-            <span class="meta-item">🏊 <strong>4h pool</strong> + 1h land</span>
-            <span class="meta-item">🎂 <strong>Ages 10–18</strong></span>
-            <span class="meta-item">👥 <strong>Max 20 places</strong></span>
-          </div>
-          <div class="camp-coach-row">
-            <div class="coach-pip"><img src="kseniya.jpg" alt="Kseniya" onerror="this.parentElement.textContent='KS'"></div>
-            <div><div class="camp-coach-name">Kseniya Sydorenko</div><div class="camp-coach-title">Ex Ukrainian Artistic Swimming National Team · Four-Time Olympian + 2 assistant coaches</div></div>
-          </div>
-        </div>
-        <div class="camp-actions">
-          <div><div class="price">£55</div><div class="price-sub">per athlete</div></div>
-          <button class="btn-book" onclick="openBooking(this)">Book now</button>
-          <button class="btn-waitlist" onclick="openWaitlist('ICON Kseniya · RISE · Tue 18 Aug')">Join waitlist</button>
-        </div>
-      </div>
-
-      <div class="camp-card venue-lac" data-coach="kseniya" data-venue="lac" id="camp-mastery" data-camp-id="mastery">
-        <div>
-          <div class="camp-top"><span class="camp-date">Wed 19 Aug</span><span class="camp-theme">ICON Kseniya: MASTERY</span><span class="venue-tag lac">London Aquatics Centre</span></div>
-          <div class="camp-subheading">Perfect the details that separate good athletes from elite performers.</div>
-          <div class="camp-meta">
-            <span class="meta-item">🕙 <strong>11:00am – 3:00pm</strong></span>
-            <span class="meta-item">🏊 <strong>2.5h pool</strong> + 1h land</span>
-            <span class="meta-item">🎂 <strong>Ages 10–18</strong></span>
-            <span class="meta-item">👥 <strong>Max 20 places</strong></span>
-          </div>
-          <div class="camp-coach-row">
-            <div class="coach-pip"><img src="kseniya.jpg" alt="Kseniya" onerror="this.parentElement.textContent='KS'"></div>
-            <div><div class="camp-coach-name">Kseniya Sydorenko</div><div class="camp-coach-title">Ex Ukrainian Artistic Swimming National Team · Four-Time Olympian + 2 assistant coaches</div></div>
-          </div>
-        </div>
-        <div class="camp-actions">
-          <div><div class="price">£40</div><div class="price-sub">per athlete</div></div>
-          <button class="btn-book" onclick="openBooking(this)">Book now</button>
-          <button class="btn-waitlist" onclick="openWaitlist('ICON Kseniya · MASTERY · Wed 19 Aug')">Join waitlist</button>
-        </div>
-      </div>
-
-    </div>
-
-  </div>
-</section>
-
-
-<!-- 1:1 SESSIONS -->
-<section class="onetone" id="onetone">
-  <div class="onetone-inner">
-    <p class="section-label">Exclusive training</p>
-    <h2 class="section-title">1:1 <span>Sessions</span></h2>
-    <p class="onetone-intro">Book a private one-to-one training session with one of our ICON coaches. Limited to one athlete per session — once booked, the slot is yours.</p>
-
-    <!-- ROMANE -->
-    <div class="onetone-coach-block">
-      <div class="onetone-coach-header">
-        <div class="onetone-coach-pip"><img src="romane.jpg" alt="Romane" onerror="this.parentElement.textContent='RT'"></div>
-        <div>
-          <div class="onetone-coach-name">Romane Temessek</div>
-          <div class="onetone-coach-sub">French Artistic Swimming National Team · World Youth Solo Champion 2023</div>
-        </div>
-      </div>
-      <div class="onetone-sessions">
-
-        <div class="onetone-card" data-session-id="rom-wed-1">
-          <div class="onetone-date">Wednesday 5th August</div>
-          <div class="onetone-time">7:00pm – 8:00pm</div>
-          <div class="onetone-location">📍 Fairfield Leisure Centre, Dartford</div>
-          <div class="onetone-footer">
-            <div class="onetone-price">£30<span>per athlete</span></div>
-            <button class="btn-onetone-book" onclick="openOTBooking('rom-wed-1','Romane Temessek','Wed 5 Aug · 7:00–8:00pm · Fairfield Leisure Centre, Dartford')">Book now</button>
-          </div>
-        </div>
-
-        <div class="onetone-card" data-session-id="rom-wed-2">
-          <div class="onetone-date">Wednesday 5th August</div>
-          <div class="onetone-time">8:00pm – 9:00pm</div>
-          <div class="onetone-location">📍 Fairfield Leisure Centre, Dartford</div>
-          <div class="onetone-footer">
-            <div class="onetone-price">£30<span>per athlete</span></div>
-            <button class="btn-onetone-book" onclick="openOTBooking('rom-wed-2','Romane Temessek','Wed 5 Aug · 8:00–9:00pm · Fairfield Leisure Centre, Dartford')">Book now</button>
-          </div>
-        </div>
-
-        <div class="onetone-card" data-session-id="rom-sat-1">
-          <div class="onetone-date">Saturday 8th August</div>
-          <div class="onetone-time">6:00pm – 7:00pm</div>
-          <div class="onetone-location">📍 White Oak Leisure Centre, Swanley</div>
-          <div class="onetone-footer">
-            <div class="onetone-price">£30<span>per athlete</span></div>
-            <button class="btn-onetone-book" onclick="openOTBooking('rom-sat-1','Romane Temessek','Sat 8 Aug · 6:00–7:00pm · White Oak Leisure Centre, Swanley')">Book now</button>
-          </div>
-        </div>
-
-        <div class="onetone-card" data-session-id="rom-sat-2">
-          <div class="onetone-date">Saturday 8th August</div>
-          <div class="onetone-time">7:00pm – 8:00pm</div>
-          <div class="onetone-location">📍 White Oak Leisure Centre, Swanley</div>
-          <div class="onetone-footer">
-            <div class="onetone-price">£30<span>per athlete</span></div>
-            <button class="btn-onetone-book" onclick="openOTBooking('rom-sat-2','Romane Temessek','Sat 8 Aug · 7:00–8:00pm · White Oak Leisure Centre, Swanley')">Book now</button>
-          </div>
-        </div>
-
-        <div class="onetone-card" data-session-id="rom-sun-1">
-          <div class="onetone-date">Sunday 9th August</div>
-          <div class="onetone-time">10:30am – 11:30am</div>
-          <div class="onetone-location">📍 White Oak Leisure Centre, Swanley</div>
-          <div class="onetone-footer">
-            <div class="onetone-price">£30<span>per athlete</span></div>
-            <button class="btn-onetone-book" onclick="openOTBooking('rom-sun-1','Romane Temessek','Sun 9 Aug · 10:30–11:30am · White Oak Leisure Centre, Swanley')">Book now</button>
-          </div>
-        </div>
-
-        <div class="onetone-card" data-session-id="rom-sun-2">
-          <div class="onetone-date">Sunday 9th August</div>
-          <div class="onetone-time">11:30am – 12:30pm</div>
-          <div class="onetone-location">📍 White Oak Leisure Centre, Swanley</div>
-          <div class="onetone-footer">
-            <div class="onetone-price">£30<span>per athlete</span></div>
-            <button class="btn-onetone-book" onclick="openOTBooking('rom-sun-2','Romane Temessek','Sun 9 Aug · 11:30am–12:30pm · White Oak Leisure Centre, Swanley')">Book now</button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- KSENIYA -->
-    <div class="onetone-coach-block">
-      <div class="onetone-coach-header">
-        <div class="onetone-coach-pip"><img src="kseniya.jpg" alt="Kseniya" onerror="this.parentElement.textContent='KS'"></div>
-        <div>
-          <div class="onetone-coach-name">Kseniya Sydorenko</div>
-          <div class="onetone-coach-sub">Ex Ukrainian Artistic Swimming National Team · Four-Time Olympian</div>
-        </div>
-      </div>
-      <div class="onetone-sessions">
-
-        <div class="onetone-card full" data-session-id="ks-wed-1">
-          <div class="onetone-date">Wednesday 19th August</div>
-          <div class="onetone-time">7:00pm – 8:00pm</div>
-          <div class="onetone-location">📍 Fairfield Leisure Centre, Dartford</div>
-          <div class="onetone-footer">
-            <div class="onetone-price">£50<span>per athlete</span></div>
-            <div class="btn-onetone-full">Sold out</div>
-          </div>
-        </div>
-
-        <div class="onetone-card full" data-session-id="ks-wed-2">
-          <div class="onetone-date">Wednesday 19th August</div>
-          <div class="onetone-time">8:00pm – 9:00pm</div>
-          <div class="onetone-location">📍 Fairfield Leisure Centre, Dartford</div>
-          <div class="onetone-footer">
-            <div class="onetone-price">£50<span>per athlete</span></div>
-            <div class="btn-onetone-full">Sold out</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-
-    <!-- BIANCA -->
-    <div class="onetone-coach-block">
-      <div class="onetone-coach-header">
-        <div class="onetone-coach-pip"><img src="bianca.jpg" alt="Bianca" onerror="this.parentElement.textContent='BH'"></div>
-        <div>
-          <div class="onetone-coach-name">Bianca Hofstatter</div>
-          <div class="onetone-coach-sub">Former Austrian &amp; USA National Team Artistic Swimmer</div>
-        </div>
-      </div>
-      <div class="onetone-sessions">
-
-        <div class="onetone-card full" data-session-id="bi-jul-1">
-          <div class="onetone-date">Friday 25th July</div>
-          <div class="onetone-time">6:00pm – 7:00pm</div>
-          <div class="onetone-location">📍 White Oak Leisure Centre, Swanley</div>
-          <div class="onetone-footer">
-            <div class="onetone-price">£50<span>per athlete</span></div>
-            <div class="btn-onetone-full">Sold out</div>
-          </div>
-        </div>
-
-        <div class="onetone-card full" data-session-id="bi-jul-2">
-          <div class="onetone-date">Friday 25th July</div>
-          <div class="onetone-time">7:00pm – 8:00pm</div>
-          <div class="onetone-location">📍 White Oak Leisure Centre, Swanley</div>
-          <div class="onetone-footer">
-            <div class="onetone-price">£50<span>per athlete</span></div>
-            <div class="btn-onetone-full">Sold out</div>
-          </div>
-        </div>
-
-        <div data-session-id="bi-sat-1" class="onetone-card full">
-          <div class="onetone-date">Saturday 1st August</div>
-          <div class="onetone-time">6:00pm – 7:00pm</div>
-          <div class="onetone-location">📍 White Oak Leisure Centre, Swanley</div>
-          <div class="onetone-footer">
-            <div class="onetone-price">£50<span>per athlete</span></div>
-            <div class="btn-onetone-full">Sold out</div>
-          </div>
-        </div>
-
-        <div data-session-id="bi-sat-2" class="onetone-card full">
-          <div class="onetone-date">Saturday 1st August</div>
-          <div class="onetone-time">7:00pm – 8:00pm</div>
-          <div class="onetone-location">📍 White Oak Leisure Centre, Swanley</div>
-          <div class="onetone-footer">
-            <div class="onetone-price">£50<span>per athlete</span></div>
-            <div class="btn-onetone-full">Sold out</div>
-          </div>
-        </div>
-
-        <div data-session-id="bi-sun-1" class="onetone-card full">
-          <div class="onetone-date">Sunday 2nd August</div>
-          <div class="onetone-time">10:30am – 11:30am</div>
-          <div class="onetone-location">📍 White Oak Leisure Centre, Swanley</div>
-          <div class="onetone-footer">
-            <div class="onetone-price">£50<span>per athlete</span></div>
-            <div class="btn-onetone-full">Sold out</div>
-          </div>
-        </div>
-
-        <div data-session-id="bi-sun-2" class="onetone-card full">
-          <div class="onetone-date">Sunday 2nd August</div>
-          <div class="onetone-time">11:30am – 12:30pm</div>
-          <div class="onetone-location">📍 White Oak Leisure Centre, Swanley</div>
-          <div class="onetone-footer">
-            <div class="onetone-price">£50<span>per athlete</span></div>
-            <div class="btn-onetone-full">Sold out</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<!-- VENUES -->
-<section class="venues" id="venues">
-  <p class="section-label">Where we train</p>
-  <h2 class="section-title">The <span>Venues</span></h2>
-  <div class="venues-grid">
-
-    <div class="venue-card">
-      <div class="venue-photos">
-        <div class="venue-photo-main" style="position:relative">
-          <img src="TWSC.jpg" alt="Tunbridge Wells Sports Centre" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">
-          <span class="venue-badge tw">Tunbridge Wells</span>
-        </div>
-      </div>
-      <div class="venue-details">
-        <div class="venue-name">Tunbridge Wells Sports Centre</div>
-        <div class="venue-address">
-          St John's Road, Royal Tunbridge Wells, TN4 9TX<br>
-          <a href="https://maps.google.com/?q=Tunbridge+Wells+Sports+Centre+TN4+9TX" target="_blank">Get directions ↗</a>
-        </div>
-        <div class="venue-features">
-          <div class="venue-feature">
-            <div class="venue-feature-title">Pool</div>
-            <div class="venue-feature-text">25m competition pool, 5m deep dive pit &amp; spectator seating. Dedicated space for ICON Series sessions.</div>
-          </div>
-          <div class="venue-feature">
-            <div class="venue-feature-title">Land space</div>
-            <div class="venue-feature-text">Mirrored, air-conditioned dance studio space for land training throughout the day.</div>
-          </div>
-          <div class="venue-feature">
-            <div class="venue-feature-title">Getting there</div>
-            <div class="venue-feature-text">5 mins from Tunbridge Wells train station. Car parking on site. Easy access from the A26.</div>
-          </div>
-          <div class="venue-feature">
-            <div class="venue-feature-title">Facilities</div>
-            <div class="venue-feature-text">Changing rooms, showers, lockers, and a café on site for athletes and spectators.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="venue-card">
-      <div class="venue-photos">
-        <div class="venue-photo-main" style="position:relative">
-          <img src="LAC.jpg" alt="London Aquatics Centre" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">
-          <span class="venue-badge lac">London</span>
-        </div>
-      </div>
-      <div class="venue-details">
-        <div class="venue-name">London Aquatics Centre</div>
-        <div class="venue-address">
-          Queen Elizabeth Olympic Park, Stratford, London E20 2ZQ<br>
-          <a href="https://maps.google.com/?q=London+Aquatics+Centre+E20+2ZQ" target="_blank">Get directions ↗</a>
-        </div>
-        <div class="venue-features">
-          <div class="venue-feature">
-            <div class="venue-feature-title">Pool</div>
-            <div class="venue-feature-text">The iconic location of the 2012 London Olympics. An extraordinary setting to train and learn in.</div>
-          </div>
-          <div class="venue-feature">
-            <div class="venue-feature-title">Land space</div>
-            <div class="venue-feature-text">Purpose-built warm-up and conditioning areas within the Olympic Park complex, used by elite athletes year-round.</div>
-          </div>
-          <div class="venue-feature">
-            <div class="venue-feature-title">Getting there</div>
-            <div class="venue-feature-text">Stratford station (Elizabeth line, Jubilee, Overground, DLR) — 10 mins walk. Bus stops directly outside. Limited parking on site.</div>
-          </div>
-          <div class="venue-feature">
-            <div class="venue-feature-title">Facilities</div>
-            <div class="venue-feature-text">Full Olympic-standard changing facilities, lockers, café, and the incredible atmosphere of Queen Elizabeth Olympic Park.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="venue-card">
-      <div class="venue-photos">
-        <div class="venue-photo-main" style="position:relative">
-          <img src="fairfield.jpg" alt="Fairfield Leisure Centre" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">
-          <span class="venue-badge" style="background:#5a0080;color:#fff;position:absolute;top:12px;left:12px;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:4px 12px;border-radius:2px">1:1 Sessions</span>
-        </div>
-      </div>
-      <div class="venue-details">
-        <div class="venue-name">Fairfield Leisure Centre</div>
-        <div class="venue-address">
-          Fairfield Leisure Centre, Dartford, DA1 1NB<br>
-          <a href="https://maps.google.com/?q=Fairfield+Leisure+Centre+Dartford" target="_blank">Get directions ↗</a>
-        </div>
-        <div class="venue-features">
-          <div class="venue-feature">
-            <div class="venue-feature-title">Pool</div>
-            <div class="venue-feature-text">5m deep diving pool, ideal for 1:1 artistic swimming training sessions.</div>
-          </div>
-          <div class="venue-feature">
-            <div class="venue-feature-title">Getting there</div>
-            <div class="venue-feature-text">Located in Dartford town centre. Easy access from the A2 and M25. On-site car parking available.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="venue-card">
-      <div class="venue-photos">
-        <div class="venue-photo-main" style="position:relative">
-          <img src="whiteoak.jpg" alt="White Oak Leisure Centre" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">
-          <span class="venue-badge" style="background:#5a0080;color:#fff;position:absolute;top:12px;left:12px;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:4px 12px;border-radius:2px">1:1 Sessions</span>
-        </div>
-      </div>
-      <div class="venue-details">
-        <div class="venue-name">White Oak Leisure Centre</div>
-        <div class="venue-address">
-          White Oak Leisure Centre, Swanley, BR8 7AF<br>
-          <a href="https://maps.google.com/?q=White+Oak+Leisure+Centre+Swanley" target="_blank">Get directions ↗</a>
-        </div>
-        <div class="venue-features">
-          <div class="venue-feature">
-            <div class="venue-feature-title">Pool</div>
-            <div class="venue-feature-text">2m deep, 25m 6-lane pool with a moveable floor — ideal for focused 1:1 artistic swimming sessions.</div>
-          </div>
-          <div class="venue-feature">
-            <div class="venue-feature-title">Getting there</div>
-            <div class="venue-feature-text">Located in Swanley, Kent. Easy access from the M25 Junction 3. On-site parking available.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</section>
-<section class="calendar-section" id="calendar">
-  <div class="calendar-outer">
-    <p class="section-label">Summer 2026</p>
-    <h2 class="section-title">Camp <span>Calendar</span></h2>
-    <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-bottom:32px">
-      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)"><span style="width:14px;height:14px;border-radius:2px;background:#7a5c00;display:inline-block;flex-shrink:0"></span>In Synch Residential Camp</div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)"><span style="width:14px;height:14px;border-radius:2px;background:var(--twsc);display:inline-block;flex-shrink:0"></span>ICON Series · Tunbridge Wells Sports Centre</div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)"><span style="width:14px;height:14px;border-radius:2px;background:#1a5fa8;display:inline-block;flex-shrink:0"></span>ICON Series · London Aquatics Centre</div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)"><span style="width:14px;height:14px;border-radius:2px;background:#6b00aa;display:inline-block;flex-shrink:0"></span>1:1 Sessions · Fairfield Leisure Centre</div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)"><span style="width:14px;height:14px;border-radius:2px;background:#c05000;display:inline-block;flex-shrink:0"></span>1:1 Sessions · White Oak Leisure Centre</div>
-    </div>
-    <div class="calendar-months" id="calendarMount"></div>
-  </div>
-</section>
-
-
-
-<!-- INFO STRIP -->
-<div class="info-strip">
-  <div class="info-strip-inner">
-    <div class="info-block">
-      <div class="info-block-title">Who can attend</div>
-      <div class="info-block-text">Ages 10–18. Minimum 2 years artistic swimming experience required for all camps.</div>
-    </div>
-    <div class="info-block">
-      <div class="info-block-title">Group sizes</div>
-      <div class="info-block-text">Maximum 20 athletes per day. 1 lead ICON coach plus 2 assistant coaches at every session.</div>
-    </div>
-    <div class="info-block">
-      <div class="info-block-title">ICON Badges</div>
-      <div class="info-block-text">Every athlete who attends earns an official ICON Badge. Collect them and climb the In Synch 2026 Leaderboard.</div>
-    </div>
-    <div class="info-block">
-      <div class="info-block-title">Questions?</div>
-      <div class="info-block-text">Email us at <a href="mailto:insynch.camp@gmail.com" style="color:var(--purple-light);text-decoration:none">insynch.camp@gmail.com</a> and we'll get back to you.</div>
-    </div>
-  </div>
-</div>
-
-<!-- FOOTER -->
-<footer>
-  <div class="footer-links">
-    <a href="https://www.insynchcamp.com" target="_blank">www.insynchcamp.com</a>
-    <a href="mailto:insynch.camp@gmail.com">insynch.camp@gmail.com</a>
-    <a href="https://leaderboard.insynchcamp.com" target="_blank">View the leaderboard</a>
-  </div>
-  <div class="footer-divider"></div>
-  <div class="footer-logo">★ In Synch ICON Series · Summer 2026 ★</div>
-</footer>
-
-<script>
-// ── SOLD OUT CONTROL ──────────────────────────────────────────────
-// To mark a camp as sold out, add its exact theme text to this list.
-// The Book Now button will be replaced with a Sold Out badge,
-// and the Join Waitlist button will appear automatically.
-// Example: const SOLD_OUT = ['ICON Romane: PRECISION', 'ICON Olivia: ARTISTRY'];
-const SOLD_OUT = [];
-
-document.addEventListener('DOMContentLoaded', function(){
-  document.querySelectorAll('.camp-card').forEach(card=>{
-    const theme = card.querySelector('.camp-theme');
-    if(!theme) return;
-    const name = theme.textContent.trim();
-    if(SOLD_OUT.includes(name)){
-      const bookBtn = card.querySelector('.btn-book');
-      if(bookBtn){
-        const soldBadge = document.createElement('div');
-        soldBadge.style.cssText='background:#1a0040;color:#6633aa;font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:11px 22px;border-radius:3px;text-align:center;border:1px solid #2a0060';
-        soldBadge.textContent='Sold out';
-        bookBtn.replaceWith(soldBadge);
-      }
-      const waitlistBtn = card.querySelector('.btn-waitlist');
-      if(waitlistBtn) waitlistBtn.style.display='block';
-    } else {
-      const waitlistBtn = card.querySelector('.btn-waitlist');
-      if(waitlistBtn) waitlistBtn.style.display='none';
-    }
-  });
-});
-// ─────────────────────────────────────────────────────────────────
-
-// ── CALENDAR ──
-(function(){
-  const CAMPS = [
-    // Residential camp 26 Jul – 1 Aug
-    {day:26, month:6, label:'In Synch Residential Camp', venue:'residential', id:null, url:'https://www.insynchcamp.com'},
-    {day:27, month:6, label:'In Synch Residential Camp', venue:'residential', id:null, url:'https://www.insynchcamp.com'},
-    {day:28, month:6, label:'In Synch Residential Camp', venue:'residential', id:null, url:'https://www.insynchcamp.com'},
-    {day:29, month:6, label:'In Synch Residential Camp', venue:'residential', id:null, url:'https://www.insynchcamp.com'},
-    {day:30, month:6, label:'In Synch Residential Camp', venue:'residential', id:null, url:'https://www.insynchcamp.com'},
-    {day:31, month:6, label:'In Synch Residential Camp', venue:'residential', id:null, url:'https://www.insynchcamp.com'},
-    {day:1,  month:7, label:'In Synch Residential Camp', venue:'residential', id:null, url:'https://www.insynchcamp.com'},
-    // ICON Series day camps
-    {day:4,  month:7, label:'ICON Romane: PRECISION',  venue:'tw', id:'camp-precision'},
-    {day:5,  month:7, label:'ICON Romane: PERFORM',    venue:'tw', id:'camp-perform'},
-    {day:6,  month:7, label:'ICON Romane: ELEVATE',    venue:'lac',id:'camp-elevate'},
-    {day:7,  month:7, label:'ICON Romane: CONTROL',    venue:'lac',id:'camp-control'},
-    {day:11, month:7, label:'ICON Olivia: ARTISTRY',   venue:'tw', id:'camp-artistry'},
-    {day:12, month:7, label:'ICON Olivia: EXPRESSION', venue:'tw', id:'camp-expression'},
-    {day:13, month:7, label:'ICON Leilani: POWER',     venue:'tw', id:'camp-power'},
-    {day:14, month:7, label:'ICON Leilani: ASCEND',    venue:'tw', id:'camp-ascend'},
-    {day:17, month:7, label:'ICON Kseniya: INTENSITY', venue:'tw', id:'camp-intensity'},
-    {day:19, month:7, label:'ICON Kseniya: MASTERY',   venue:'lac',id:'camp-mastery'},
-    {day:18, month:7, label:'ICON Kseniya: RISE',      venue:'tw', id:'camp-rise'},
-    // 1:1 Sessions
-    {day:5,  month:7, label:'1:1 Romane · 7–8pm',    venue:'fairfield', id:null, url:null, onetone:true},
-    {day:5,  month:7, label:'1:1 Romane · 8–9pm',    venue:'fairfield', id:null, url:null, onetone:true},
-    {day:8,  month:7, label:'1:1 Romane · 6–7pm',    venue:'whiteoak',  id:null, url:null, onetone:true},
-    {day:8,  month:7, label:'1:1 Romane · 7–8pm',    venue:'whiteoak',  id:null, url:null, onetone:true},
-    {day:9,  month:7, label:'1:1 Romane · 10:30am',  venue:'whiteoak',  id:null, url:null, onetone:true},
-    {day:9,  month:7, label:'1:1 Romane · 11:30am',  venue:'whiteoak',  id:null, url:null, onetone:true},
-    {day:19, month:7, label:'1:1 Kseniya · 7–8pm',   venue:'fairfield', id:null, url:null, onetone:true},
-    {day:19, month:7, label:'1:1 Kseniya · 8–9pm',   venue:'fairfield', id:null, url:null, onetone:true},
-    {day:25, month:6, label:'1:1 Bianca · 6–7pm',    venue:'whiteoak',  id:null, url:null, onetone:true},
-    {day:25, month:6, label:'1:1 Bianca · 7–8pm',    venue:'whiteoak',  id:null, url:null, onetone:true},
-    {day:1,  month:7, label:'1:1 Bianca · 6–7pm',    venue:'whiteoak',  id:null, url:null, onetone:true},
-    {day:1,  month:7, label:'1:1 Bianca · 7–8pm',    venue:'whiteoak',  id:null, url:null, onetone:true},
-    {day:2,  month:7, label:'1:1 Bianca · 10:30am',  venue:'whiteoak',  id:null, url:null, onetone:true},
-    {day:2,  month:7, label:'1:1 Bianca · 11:30am',  venue:'whiteoak',  id:null, url:null, onetone:true},
-  ];
-  // month:7 = August (0-indexed)
-
-  const RANGE_START = new Date(2026,6,26); // 26 July
-  const RANGE_END   = new Date(2026,7,30); // 30 August
-  const MONTHS = [
-    {year:2026, month:6, name:'July 2026'},
-    {year:2026, month:7, name:'August 2026'},
-  ];
-  const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-
-  function campMap(){
-    const m={};
-    CAMPS.forEach(c=>{
-      const key=c.year+'-'+c.month+'-'+c.day;
-      // store by month+day
-      const k2=c.month+'-'+c.day;
-      if(!m[k2])m[k2]=[];
-      m[k2].push(c);
-    });
-    return m;
-  }
-
-  function scrollToCamp(id){
-    // Reset filters so camp is visible
-    activeCoach=null; activeVenue=null;
-    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.filter-btn')[0].classList.add('active');
-    document.querySelectorAll('.coach-card').forEach(c=>c.classList.remove('active'));
-    applyFilters();
-    const el=document.getElementById(id);
-    if(el){
-      setTimeout(()=>{
-        el.scrollIntoView({behavior:'smooth',block:'center'});
-        el.style.transition='box-shadow .3s';
-        el.style.boxShadow='0 0 0 2px var(--purple-glow)';
-        setTimeout(()=>el.style.boxShadow='',1800);
-      },100);
-    }
-  }
-
-  function buildCalendar(){
-    const mount=document.getElementById('calendarMount');
-    if(!mount) return;
-    // Clear and rebuild each time
-    mount.innerHTML = '';
-    const cm=campMap();
-
-    MONTHS.forEach(({year,month,name})=>{
-      const section=document.createElement('div');
-      section.className='cal-month';
-
-      const header=document.createElement('div');
-      header.className='cal-month-header';
-      header.textContent=name;
-      section.appendChild(header);
-
-      const grid=document.createElement('div');
-      grid.className='cal-grid';
-
-      // Day of week headers
-      DAYS.forEach(d=>{
-        const h=document.createElement('div');
-        h.className='cal-dow';
-        h.textContent=d;
-        grid.appendChild(h);
-      });
-
-      // First day to show — for July start at 26th, otherwise 1st
-      const startDay = (year===2026 && month===6) ? 26 : 1;
-      const firstDay=new Date(year,month,startDay).getDay();
-      const offset=(firstDay+6)%7; // Mon=0..Sun=6
-      const daysInMonth=new Date(year,month+1,0).getDate();
-      // End day — for August stop at 30th
-      const endDay = (year===2026 && month===7) ? 30 : daysInMonth;
-
-      for(let i=0;i<offset;i++){
-        const empty=document.createElement('div');
-        empty.className='cal-day empty';
-        grid.appendChild(empty);
-      }
-
-      for(let d=startDay;d<=endDay;d++){
-        const date=new Date(year,month,d);
-        const inRange=date>=RANGE_START&&date<=RANGE_END;
-        const cell=document.createElement('div');
-        const k=month+'-'+d;
-        const dayCamps=cm[k]||[];
-        cell.className='cal-day'+(dayCamps.length?' has-camp':'');
-
-        const num=document.createElement('div');
-        num.className='cal-day-num';
-        num.textContent=d;
-        cell.appendChild(num);
-
-        dayCamps.forEach(c=>{
-          const pill=document.createElement('button');
-          pill.className='cal-camp-pill '+c.venue;
-          // Shorten label for calendar
-          if(c.onetone){
-            pill.innerHTML = c.label;
-            pill.onclick = ()=>{ document.getElementById('onetone').scrollIntoView({behavior:'smooth'}); };
-          } else if(c.venue==='residential'){
-            pill.innerHTML = 'In Synch Residential';
-            pill.onclick = ()=>window.open(c.url,'_blank');
-          } else {
-            const short = c.label.replace(/ICON \w+: /,'');
-            pill.innerHTML = '<span style="opacity:0.75;font-size:9px">'+c.label.split(':')[0]+'</span><br>'+short;
-            if(c.id) pill.dataset.campId = c.id;
-            pill.onclick = ()=>scrollToCamp(c.id);
-          }
-          cell.appendChild(pill);
-        });
-
-        grid.appendChild(cell);
-      }
-
-      const scroll=document.createElement('div');
-      scroll.className='cal-month-scroll';
-      scroll.appendChild(grid);
-      section.appendChild(scroll);
-      mount.appendChild(section);
-    });
-  }
-
-  // Expose globally
-  window.buildCalendar = buildCalendar;
-
-  // Call immediately when script runs — DOM is ready since script is at bottom of body
-  document.addEventListener('DOMContentLoaded', buildCalendar);
-
-})();
-
-// Stars
-const starsEl=document.getElementById('heroStars');
-for(let i=0;i<70;i++){
-  const s=document.createElement('div');
-  s.className='star';
-  const sz=Math.random()*2.5+0.5;
-  s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;opacity:${Math.random()*0.6+0.1}`;
-  starsEl.appendChild(s);
-}
-
-// Filter
-let activeCoach=null,activeVenue=null;
-function filterCoach(coach){
-  activeCoach=activeCoach===coach?null:coach;
-  activeVenue=null;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.filter-btn')[0].classList.add('active');
-  document.querySelectorAll('.coach-card').forEach(c=>c.classList.remove('active'));
-  if(activeCoach)document.getElementById('coach-'+activeCoach).classList.add('active');
-  applyFilters();
-  document.getElementById('camps').scrollIntoView({behavior:'smooth'});
-}
-function filterAll(btn){
-  activeCoach=null;activeVenue=null;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.coach-card').forEach(c=>c.classList.remove('active'));
-  applyFilters();
-}
-function filterVenue(venue,btn){
-  activeVenue=activeVenue===venue?null:venue;
-  activeCoach=null;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.coach-card').forEach(c=>c.classList.remove('active'));
-  if(activeVenue)btn.classList.add('active');
-  else document.querySelectorAll('.filter-btn')[0].classList.add('active');
-  applyFilters();
-}
-function applyFilters(){
-  document.querySelectorAll('.camp-card').forEach(card=>{
-    // Don't un-hide cards that are admin-hidden
-    const campId = card.dataset.campId;
-    // card stores full id e.g. 'camp-precision'; campState uses short key 'precision'
-    const shortId = campId ? campId.replace(/^camp-/, '') : null;
-    const adminHidden = shortId && (campState[shortId] === 'hidden');
-    if(adminHidden){ card.classList.remove('hidden'); card.style.display='none'; return; }
-    const coachOk=!activeCoach||card.dataset.coach===activeCoach;
-    const venueOk=!activeVenue||card.dataset.venue===activeVenue;
-    card.classList.toggle('hidden',!(coachOk&&venueOk));
-    if(!card.classList.contains('hidden')) card.style.display='';
-  });
-  // Show/hide coach groups
-  document.querySelectorAll('.coach-group').forEach(group=>{
-    const visible=group.querySelectorAll('.camp-card:not(.hidden)').some(c=>c.style.display!=='none');
-    group.style.display=visible?'':'none';
-  });
-}
-
-// ── BOOKING MODAL ──
-let bCurrentStep=1;
-const bTotalSteps=4;
-
-function openBooking(btn){
-  // Pre-check the camp that was clicked
-  const card=btn.closest('.camp-card');
-  const theme=card?card.querySelector('.camp-theme'):null;
-  if(theme){
-    const campText=theme.textContent;
-    document.querySelectorAll('#campChecklist input[type=checkbox]').forEach(cb=>{
-      if(cb.value.startsWith(campText))cb.checked=true;
-    });
-  }
-  bGo(1);
-  document.getElementById('bookingForm').style.display='';
-  document.getElementById('bookingSuccess').style.display='none';
-  document.getElementById('bookingModal').classList.add('open');
-}
-function closeBooking(){
-  document.getElementById('bookingModal').classList.remove('open');
-}
-function bGo(step){
-  bCurrentStep=step;
-  for(let i=1;i<=bTotalSteps;i++){
-    document.getElementById('bstep'+i).classList.toggle('active',i===step);
-    document.getElementById('pip'+i).classList.toggle('done',i<=step);
-  }
-}
-function bNext(fromStep){
-  if(fromStep===1){
-    const checked=document.querySelectorAll('#campChecklist input:checked');
-    if(checked.length===0){alert('Please select at least one camp.');return;}
-  }
-  if(fromStep===2){
-    const req=['b-afirst','b-alast','b-dob','b-gender','b-club','b-hours','b-pfirst','b-plast','b-email','b-phone','b-addr1','b-addr2','b-postcode','b-country'];
-    for(const id of req){const el=document.getElementById(id);if(!el.value.trim()){el.focus();alert('Please complete all required fields.');return;}}
-  }
-  if(fromStep===3){
-    const req=['b-efirst','b-elast','b-erel','b-ephone','b-medical','b-inhaler','b-meds'];
-    for(const id of req){const el=document.getElementById(id);if(!el.value.trim()){el.focus();alert('Please complete all required fields.');return;}}
-  }
-  bGo(fromStep+1);
-  document.getElementById('bookingModal').scrollTop=0;
-}
-function submitBooking(){
-  if(!document.getElementById('b-medical-consent').checked){alert('Please confirm the medical release authorisation.');return;}
-  if(!document.getElementById('b-reg-consent').checked){alert('Please confirm the registration declaration.');return;}
-  const email=document.getElementById('b-email').value.trim();
-  const camps=[...document.querySelectorAll('#campChecklist input:checked')].map(c=>c.value).join(' | ');
-
-  // Web3Forms payload — concise for email display
-  const emailPayload={
-    _subject:'New ICON Series Booking — '+document.getElementById('b-afirst').value+' '+document.getElementById('b-alast').value,
-    '1_Camps':camps,
-    '2_Athlete':document.getElementById('b-afirst').value+' '+document.getElementById('b-alast').value,
-    '3_DOB':document.getElementById('b-dob').value,
-    '4_Gender':document.getElementById('b-gender').value,
-    '5_Club':document.getElementById('b-club').value,
-    '6_Training':document.getElementById('b-hours').value,
-    '7_Parent':document.getElementById('b-pfirst').value+' '+document.getElementById('b-plast').value,
-    '8_Email':email,
-    '9_Phone':document.getElementById('b-phone').value,
-    '10_Address':document.getElementById('b-addr1').value+', '+document.getElementById('b-addr2').value+', '+document.getElementById('b-postcode').value+', '+document.getElementById('b-country').value,
-    '11_Emergency':document.getElementById('b-efirst').value+' '+document.getElementById('b-elast').value+' ('+document.getElementById('b-erel').value+') '+document.getElementById('b-ephone').value,
-    '12_Medical':document.getElementById('b-medical').value,
-    '13_Inhaler':document.getElementById('b-inhaler').value,
-    '14_Medication':document.getElementById('b-meds').value,
-    '15_PhotoConsent':(document.getElementById('b-photo1').checked?'Yes':'No')+' / '+(document.getElementById('b-photo2').checked?'Yes':'No'),
-    '16_Source':document.getElementById('b-source').value,
-    '17_Notes':document.getElementById('b-notes').value
-  };
-
-  // Full payload for Google Sheets
-  const payload={
-    _subject:emailPayload._subject,
-    camps_selected:camps,
-    athlete_name:document.getElementById('b-afirst').value+' '+document.getElementById('b-alast').value,
-    athlete_dob:document.getElementById('b-dob').value,
-    athlete_gender:document.getElementById('b-gender').value,
-    club:document.getElementById('b-club').value,
-    training_hours:document.getElementById('b-hours').value,
-    parent_name:document.getElementById('b-pfirst').value+' '+document.getElementById('b-plast').value,
-    parent_email:email,
-    parent_phone:document.getElementById('b-phone').value,
-    address:document.getElementById('b-addr1').value+', '+document.getElementById('b-addr2').value+', '+(document.getElementById('b-state')?document.getElementById('b-state').value+', ':'')+document.getElementById('b-postcode').value+', '+(document.getElementById('b-country')?document.getElementById('b-country').value:''),
-    emergency_contact:document.getElementById('b-efirst').value+' '+document.getElementById('b-elast').value,
-    emergency_relationship:document.getElementById('b-erel').value,
-    emergency_phone:document.getElementById('b-ephone').value,
-    medical_info:document.getElementById('b-medical').value,
-    inhaler:document.getElementById('b-inhaler').value,
-    medication:document.getElementById('b-meds').value,
-    photo_consent_1:document.getElementById('b-photo1').checked?'Yes':'No',
-    photo_consent_2:document.getElementById('b-photo2').checked?'Yes':'No',
-    heard_about:document.getElementById('b-source').value,
-    notes:document.getElementById('b-notes').value
-  };
-
-  // Web3Forms — send concise email version
-  const WEB3FORMS_KEY='7223be0c-e223-4f83-bc5d-f7aa0fea1073';
-  fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({access_key:WEB3FORMS_KEY,...emailPayload})}).catch(()=>{});
-
-  // Google Sheets — log booking
-  const sheetPayload = Object.assign({type:'camp'}, payload, {
-    athlete_first: document.getElementById('b-afirst').value.trim(),
-    athlete_last:  document.getElementById('b-alast').value.trim(),
-    athlete_dob:   document.getElementById('b-dob').value,
-    athlete_gender:document.getElementById('b-gender').value,
-    parent_first:  document.getElementById('b-pfirst').value.trim(),
-    parent_last:   document.getElementById('b-plast').value.trim(),
-    emergency_contact: document.getElementById('b-efirst').value.trim()+' '+document.getElementById('b-elast').value.trim(),
-    emergency_relationship: document.getElementById('b-erel').value,
-    emergency_phone: document.getElementById('b-ephone').value.trim(),
-  });
-  fetch('https://script.google.com/macros/s/AKfycbzoK1o3Bra7kmK7PanJpFtYhbca3FmCjZInM1ljQu2ym3vhmV0RFFlutWYU9L6-aeMH/exec',{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(sheetPayload)}).catch(()=>{});
-  document.getElementById('b-confirm-email').textContent=email;
-  document.getElementById('bookingForm').style.display='none';
-  document.getElementById('bookingSuccess').style.display='block';
-}
-document.getElementById('bookingModal').addEventListener('click',function(e){if(e.target===this)closeBooking();});
-
-// ── WAITLIST MODAL ──
-function openWaitlist(campName){
-  document.getElementById('modalCampName').textContent=campName;
-  document.getElementById('wlForm').style.display='';
-  document.getElementById('wlSuccess').style.display='none';
-  ['wl-name','wl-email','wl-phone','wl-athlete'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('waitlistModal').classList.add('open');
-}
-function closeWaitlist(){document.getElementById('waitlistModal').classList.remove('open');}
-function submitWaitlist(){
-  const name=document.getElementById('wl-name').value.trim();
-  const email=document.getElementById('wl-email').value.trim();
-  if(!name||!email){alert('Please enter your name and email address.');return;}
-  document.getElementById('successCamp').textContent=document.getElementById('modalCampName').textContent;
-  document.getElementById('wlForm').style.display='none';
-  document.getElementById('wlSuccess').style.display='block';
-}
-document.getElementById('waitlistModal').addEventListener('click',function(e){if(e.target===this)closeWaitlist();});
-</script>
-
-
-<!-- 1:1 BOOKING MODAL -->
-<div class="modal-bg" id="otModal" role="dialog" aria-modal="true">
-  <div class="modal">
-    <button class="modal-close" onclick="closeOTModal()" aria-label="Close">×</button>
-    <div id="otForm">
-      <div class="ot-modal-title">Book 1:1 Session</div>
-      <div class="ot-modal-session" id="otSessionLabel"></div>
-      <div class="modal-section">Your details</div>
-      <div class="modal-row">
-        <div class="modal-field"><label>Parent / guardian first name *</label><input type="text" id="ot-pfirst" placeholder="First name"></div>
-        <div class="modal-field"><label>Last name *</label><input type="text" id="ot-plast" placeholder="Last name"></div>
-      </div>
-      <div class="modal-field"><label>Email address *</label><input type="email" id="ot-email" placeholder="your@email.com"></div>
-      <div class="modal-field"><label>Phone number *</label><input type="tel" id="ot-phone" placeholder="+44 ..."></div>
-      <div class="modal-section">Athlete details</div>
-      <div class="modal-row">
-        <div class="modal-field"><label>Athlete first name *</label><input type="text" id="ot-afirst" placeholder="First name"></div>
-        <div class="modal-field"><label>Last name *</label><input type="text" id="ot-alast" placeholder="Last name"></div>
-      </div>
-      <div class="modal-row">
-        <div class="modal-field"><label>Date of birth *</label><input type="date" id="ot-dob"></div>
-        <div class="modal-field"><label>Club *</label><input type="text" id="ot-club" placeholder="Club name"></div>
-      </div>
-      <div class="modal-field"><label>Any medical conditions or notes</label><textarea id="ot-medical" placeholder="Optional — allergies, conditions, injuries..."></textarea></div>
-      <div class="modal-field" style="margin-top:8px">
-        <label class="consent-check"><input type="checkbox" id="ot-consent"> <span>I confirm all details are accurate. I understand payment details will be sent by email and the booking is only confirmed once payment is received. *</span></label>
-      </div>
-      <button class="modal-submit" onclick="submitOTBooking()">Request booking</button>
-      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.6">Payment details will be sent to your email within 24 hours. Session confirmed on receipt of payment.</p>
-    </div>
-    <div class="modal-success" id="otSuccess">
-      <div class="modal-success-icon">⭐</div>
-      <div class="modal-success-title">Request received!</div>
-      <div class="modal-success-text">We'll send payment details to <strong id="ot-confirm-email" style="color:var(--purple-glow)"></strong> within 24 hours. Once payment is received your session is confirmed.</div>
-    </div>
-  </div>
-</div>
-
-<!-- ADMIN FAB -->
-<button class="admin-fab" id="adminFab" title="" aria-hidden="true">·</button>
-
-<!-- ADMIN OVERLAY -->
-<div class="admin-overlay" id="adminOverlay">
-  <div class="admin-panel">
-    <div class="admin-header">
-      <div class="admin-title">⚙ Admin Panel</div>
-      <button class="admin-close" onclick="closeAdmin()">×</button>
-    </div>
-
-    <!-- LOGIN -->
-    <div id="adminLogin">
-      <div class="admin-login">
-        <div class="admin-login-title">Enter admin password</div>
-        <input type="password" class="admin-pw-field" id="adminPwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkAdminPw()">
-        <button class="admin-pw-btn" onclick="checkAdminPw()">Log in</button>
-        <div class="admin-pw-error" id="adminPwError">Incorrect password</div>
-      </div>
-    </div>
-
-    <!-- CONTROLS -->
-    <div id="adminControls" style="display:none">
-
-      <div class="admin-section-title">Coach visibility</div>
-      <div id="adminCoachRows"></div>
-
-      <div class="admin-section-title">Camp visibility</div>
-      <div id="adminCampRows"></div>
-
-      <div class="admin-section-title">Camp capacity — sold out</div>
-      <div id="adminSoldOutRows"></div>
-
-      <div class="admin-save-bar">
-        <button class="admin-save-btn" onclick="adminSave()">Save &amp; publish</button>
-        <span class="admin-save-status" id="adminSaveStatus"></span>
-        <button class="admin-logout" onclick="adminLogout()">Log out</button>
-      </div>
+      <p class="login-hint">Don't have an account? Ask your coach to add you.</p>
     </div>
   </div>
 </div>
 
 
-<script>
-// ── SUPABASE CONFIG ──
-const SB_URL = 'https://mdqtdxazdclrnvojyrzk.supabase.co';
-const SB_KEY = 'sb_publishable_KIqpVj43G8X0gqT_6BQI-A_3VFfHRXX';
-const ADMIN_PASSWORD = 'IconSeries2026!'; // Change this to your preferred password
+<div id="forcePwScreen" style="display:none;position:fixed;inset:0;z-index:1500;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(ellipse 700px 500px at 20% 10%, rgba(155,48,255,0.18), transparent), radial-gradient(ellipse 600px 500px at 90% 80%, rgba(255,107,129,0.16), transparent), var(--bg-deep);">
+  <div class="login-wrap">
+    <div class="login-brand">
+      <img src="https://i.ibb.co/4n7TcPdP/Front-in-synch.png" class="login-logo" alt="In Synch">
+      <h1>Welcome, <span id="forcePwName"></span>! 👋</h1>
+      <div class="lb-tag">Let's set up your own password</div>
+    </div>
+    <div class="login-card">
+      <p style="font-size:13px;color:var(--ink-dim);font-weight:600;margin-bottom:16px;line-height:1.6;">For security, please choose your own password to replace the temporary one your coach gave you.</p>
+      <div class="lform">
+        <div class="fld"><label>New Password</label><input type="password" id="fpw1" placeholder="Min 6 characters"></div>
+        <div class="fld"><label>Confirm Password</label><input type="password" id="fpw2" placeholder="Repeat password"></div>
+        <div class="err-msg" id="fpwErr"></div>
+        <button class="btn-login" id="fpwBtn" onclick="doForcePasswordChange()">Set New Password &amp; Continue</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-async function sbGet(table) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}?select=*`, {
-    headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
-  });
-  return r.ok ? r.json() : [];
-}
-async function sbUpsert(table, rows) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}`, {
-    method: 'POST',
-    headers: {
-      'apikey': SB_KEY,
-      'Authorization': 'Bearer ' + SB_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': 'resolution=merge-duplicates'
-    },
-    body: JSON.stringify(rows)
-  });
-  return r.ok;
-}
+<div id="appScreen">
+  <header class="app-header">
+    <img src="https://i.ibb.co/4n7TcPdP/Front-in-synch.png" class="header-logo" alt="In Synch">
+    <div class="header-title"><span>In Synch Camp</span>Leaderboard</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('leaderboard')">🏆 Leaderboard</button>
+      <button class="nav-tab" id="navProfile" onclick="showPage('profile')" style="display:none">😎 My Avatar</button>
+      <button class="nav-tab" id="navAdmin" onclick="showPage('admin')" style="display:none">⚙️ Admin</button>
+    </div>
+    <div class="header-right">
+      <button class="hdr-btn hdr-btn-signin" id="signInBtn" onclick="openModal('signInModal')" style="display:inline-flex">👤 Sign In</button>
+      <div class="user-chip" id="userChip" style="display:none"><div class="user-chip-avatar" id="userChipAvatar"></div><span id="userChipName"></span></div>
+      <button class="hdr-btn" id="signOutBtn" onclick="doLogout()" style="display:none">Sign Out</button>
+      <button class="menu-btn" onclick="toggleMobMenu()"><span></span><span></span><span></span></button>
+    </div>
+  </header>
+  <div class="mob-drawer" id="mobDrawer">
+    <button class="mob-nav-item active" onclick="showPage('leaderboard');toggleMobMenu()">🏆 Leaderboard</button>
+    <button class="mob-nav-item" id="mobNavProfile" onclick="showPage('profile');toggleMobMenu()" style="display:none">😎 My Avatar</button>
+    <button class="mob-nav-item" id="mobNavAdmin" onclick="showPage('admin');toggleMobMenu()" style="display:none">⚙️ Admin</button>
+    <button class="mob-nav-item" id="mobSignInBtn" onclick="openModal('signInModal');toggleMobMenu()">👤 Sign In</button>
+    <button class="mob-nav-item" id="mobSignOutBtn" onclick="doLogout()" style="display:none">Sign Out</button>
+  </div>
 
-// ── VISIBILITY STATE ──
-const CAMPS_META = [
-  {id:'precision',  label:'ICON Romane: PRECISION',  date:'Tue 4 Aug'},
-  {id:'perform',    label:'ICON Romane: PERFORM',     date:'Wed 5 Aug'},
-  {id:'elevate',    label:'ICON Romane: ELEVATE',     date:'Thu 6 Aug'},
-  {id:'control',    label:'ICON Romane: CONTROL',     date:'Fri 7 Aug'},
-  {id:'artistry',   label:'ICON Olivia: ARTISTRY',    date:'Tue 11 Aug'},
-  {id:'expression', label:'ICON Olivia: EXPRESSION',  date:'Wed 12 Aug'},
-  {id:'power',      label:'ICON Leilani: POWER',      date:'Wed 13 Aug'},
-  {id:'ascend',     label:'ICON Leilani: ASCEND',     date:'Thu 14 Aug'},
-  {id:'intensity',  label:'ICON Kseniya: INTENSITY',  date:'Mon 17 Aug'},
-  {id:'rise',       label:'ICON Kseniya: RISE',       date:'Tue 18 Aug'},
-  {id:'mastery',    label:'ICON Kseniya: MASTERY',    date:'Wed 19 Aug'},
-];
-const COACHES_META = [
-  {id:'romane',  label:'Romane Temessek'},
-  {id:'olivia',  label:'Olivia Federici'},
-  {id:'leilani', label:'Leilani Torres'},
-  {id:'kseniya', label:'Kseniya Sydorenko'},
-  {id:'bianca',  label:'Bianca Hofstatter'},
-];
+  <!-- LEADERBOARD PAGE -->
+  <div id="page-leaderboard" class="page page-fixed-scroll active">
+    <div class="page-inner" id="leaderboardContent">
+      <p style="text-align:center;color:var(--ink-faint);padding:40px;">Loading leaderboard...</p>
+    </div>
+  </div>
 
-let campState = {};    // id → 'live'|'soon'|'hidden'
-let coachState = {};   // id → 'live'|'soon'|'hidden'
-let soldOutState = {}; // id → true|false
-let visibilityLoaded = false; // true once Supabase data arrives
+  <!-- PROFILE / AVATAR PAGE -->
+  <div id="page-profile" class="page page-fixed-scroll">
+    <div class="page-inner" id="profileContent"></div>
+  </div>
 
-// Default: Romane live, others hidden
-function defaultState() {
-  const cs = {}, cc = {};
-  CAMPS_META.forEach(c => cs[c.id] = ['precision','perform','elevate','control'].includes(c.id) ? 'live' : 'hidden');
-  COACHES_META.forEach(c => cc[c.id] = c.id === 'romane' ? 'live' : 'hidden');
-  const so = {};
-  CAMPS_META.forEach(c => so[c.id] = false);
-  return {camps: cs, coaches: cc, soldout: so};
-}
+  <!-- ADMIN PAGE -->
+  <div id="page-admin" class="page page-fixed-scroll">
+    <div class="page-inner" id="adminContent"></div>
+  </div>
+</div>
 
-async function loadVisibility() {
-  const def = defaultState();
-  campState = Object.assign({}, def.camps);
-  coachState = Object.assign({}, def.coaches);
-  soldOutState = Object.assign({}, def.soldout);
-  // Fetch each independently so one failure doesn't block the rest
-  await Promise.allSettled([
-    sbGet('camp_visibility').then(r => { if(r && r.length) r.forEach(x => campState[x.id] = x.status); }).catch(()=>{}),
-    sbGet('coach_visibility').then(r => { if(r && r.length) r.forEach(x => coachState[x.id] = x.status); }).catch(()=>{}),
-    sbGet('camp_soldout').then(r => { if(r && r.length) r.forEach(x => soldOutState[x.id] = x.soldout); }).catch(()=>{}),
-  ]);
-  // Apply visibility after data loads — calendar already built
-  applyVisibility();
-}
+<!-- CHANGE PASSWORD MODAL -->
+<div class="bkdrop" id="pwModal">
+  <div class="modal" style="max-width:360px">
+    <h3>🔑 Change Password</h3>
+    <div class="fld" style="margin-bottom:12px"><label>New Password</label><input type="password" id="pw1" placeholder="Min 6 characters"></div>
+    <div class="fld"><label>Confirm</label><input type="password" id="pw2" placeholder="Repeat password"></div>
+    <div class="err-msg" id="pwErr" style="margin-top:10px"></div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('pwModal')">Cancel</button>
+      <button class="btn-confirm" onclick="doChangePw()">Update</button>
+    </div>
+  </div>
+</div>
 
-function applyVisibility() {
-  // Camps — CAMPS_META uses short ids ('precision'), cards have data-camp-id='camp-precision'
-  CAMPS_META.forEach(c => {
-    const card = document.querySelector(`[data-camp-id="camp-${c.id}"]`);
-    if (!card) return;
-    const status = campState[c.id] || 'hidden';
-    card.style.display = status === 'hidden' ? 'none' : '';
-    // Remove old soon badge
-    card.querySelectorAll('.status-soon').forEach(el => el.remove());
-    if (status === 'soon') {
-      // Show card but disable book button, add badge
-      const theme = card.querySelector('.camp-theme');
-      if (theme && !theme.querySelector('.status-soon')) {
-        const badge = document.createElement('span');
-        badge.className = 'status-soon';
-        badge.textContent = 'Coming soon';
-        theme.appendChild(badge);
-      }
-      const bookBtn = card.querySelector('.btn-book');
-      if (bookBtn) { bookBtn.style.opacity='0.4'; bookBtn.style.pointerEvents='none'; }
-    } else if (status === 'live') {
-      const bookBtn = card.querySelector('.btn-book');
-      if (bookBtn) { bookBtn.style.opacity=''; bookBtn.style.pointerEvents=''; }
-    }
-    // Sold out overlay
-    card.querySelectorAll('.admin-soldout-badge').forEach(el => el.remove());
-    if (soldOutState[c.id]) {
-      const bookBtn = card.querySelector('.btn-book');
-      if (bookBtn) {
-        const badge = document.createElement('div');
-        badge.className = 'btn-waitlist admin-soldout-badge';
-        badge.style.cssText = 'background:#3a0010;border-color:#660022;color:#ff6666;cursor:default;text-align:center;padding:11px 22px';
-        badge.textContent = 'Sold out';
-        bookBtn.style.display = 'none';
-        bookBtn.parentNode.insertBefore(badge, bookBtn);
-      }
-      // Show waitlist button
-      const wlBtn = card.querySelector('.btn-waitlist:not(.admin-soldout-badge)');
-      if (wlBtn) wlBtn.style.display = 'block';
-    } else {
-      const bookBtn = card.querySelector('.btn-book');
-      if (bookBtn) bookBtn.style.display = '';
-    }
-  });
+<!-- SHARE CARD MODAL -->
+<div class="bkdrop" id="shareCardModal">
+  <div class="modal" style="max-width:420px;">
+    <button class="modal-close-btn" onclick="closeModal('shareCardModal')">&times;</button>
+    <h3 style="margin-bottom:14px;">📤 Share My Progress</h3>
+    <div id="shareCardCanvasWrap"></div>
+    <p style="font-size:11px;color:var(--ink-faint);margin-top:12px;text-align:center;">Save this image and send it to family and friends, or post it to celebrate your progress!</p>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('shareCardModal')">Close</button>
+      <button class="btn-confirm" id="btnDownloadShareCard">⬇️ Download Image</button>
+    </div>
+  </div>
+</div>
 
-  // Calendar pills — only hide/show once Supabase data has loaded
-  if (visibilityLoaded) {
-    document.querySelectorAll('.cal-camp-pill').forEach(pill => {
-      const rawId = pill.dataset.campId;
-      if (!rawId) { pill.style.display = ''; return; } // residential — always show
-      const campId = rawId.replace(/^camp-/, '');
-      const status = campState[campId] || 'hidden';
-      pill.style.display = status === 'hidden' ? 'none' : '';
-      pill.style.opacity = status === 'soon' ? '0.5' : '';
-    });
-  } else {
-    // Before Supabase loads, show all pills so calendar is visible
-    document.querySelectorAll('.cal-camp-pill').forEach(pill => {
-      pill.style.display = '';
-    });
-  }
-  // Show calendar day cells that have at least one visible pill
-  document.querySelectorAll('.cal-day.has-camp').forEach(day => {
-    const anyVisible = [...day.querySelectorAll('.cal-camp-pill')].some(p => p.style.display !== 'none');
-    day.style.opacity = anyVisible ? '' : '0.4';
-  });
+<!-- LEVEL UP CELEBRATION -->
+<div id="levelUpOverlay" class="level-up-overlay">
+  <div id="confettiContainer" class="confetti-container"></div>
+  <div class="level-up-card">
+    <div class="level-up-medal" id="levelUpMedal">🥇</div>
+    <div class="level-up-title">Level Up!</div>
+    <div class="level-up-subtitle">You've reached <span id="levelUpLevelName">Gold</span> level!</div>
+    <button class="btn-login" onclick="closeLevelUpCelebration()">Awesome!</button>
+  </div>
+</div>
 
-  // Coaches
-  COACHES_META.forEach(c => {
-    const card = document.getElementById('coach-' + c.id);
-    if (!card) return;
-    const status = coachState[c.id] || 'hidden';
-    card.style.display = status === 'hidden' ? 'none' : '';
-    // Remove old soon tag
-    card.querySelectorAll('.status-soon').forEach(el => el.remove());
-    if (status === 'soon') {
-      const nameEl = card.querySelector('.coach-name');
-      if (nameEl) {
-        const badge = document.createElement('span');
-        badge.className = 'status-soon';
-        badge.textContent = 'Camps coming soon';
-        nameEl.after(badge);
-      }
-    }
-    // Hide coach group in camps section if all its camps are hidden
-    const group = document.querySelector(`.coach-group[data-group="${c.id}"]`);
-    if (group) {
-      const anyVisible = [...group.querySelectorAll('.camp-card')].some(card => card.style.display !== 'none');
-      group.style.display = (status === 'hidden' && !anyVisible) ? 'none' : '';
-    }
-  });
+<!-- ATHLETE DETAIL MODAL -->
+<div class="bkdrop" id="athleteDetailModal">
+  <div class="modal" style="max-width:440px;"></div>
+</div>
 
-  // Re-run filter to respect any active venue/coach filter
-  // but only if filters are active — don't override hidden state
-  if (activeCoach || activeVenue) applyFilters();
-}
+<!-- CLUB DETAIL MODAL -->
+<div class="bkdrop" id="clubDetailModal">
+  <div class="modal" style="max-width:480px;"></div>
+</div>
 
-// ── ADMIN ──
-let adminLoggedIn = false;
-// Admin fab — triple click to open
-let adminFabClicks = 0, adminFabTimer;
-document.getElementById('adminFab').addEventListener('click', function(){
-  adminFabClicks++;
-  clearTimeout(adminFabTimer);
-  adminFabTimer = setTimeout(() => adminFabClicks = 0, 1000);
-  if (adminFabClicks >= 3) {
-    adminFabClicks = 0;
-    openAdmin();
-  }
-});
-
-function openAdmin() {
-  document.getElementById('adminOverlay').classList.add('open');
-  if (adminLoggedIn) showAdminControls();
-}
-function closeAdmin() { document.getElementById('adminOverlay').classList.remove('open'); }
-function checkAdminPw() {
-  const val = document.getElementById('adminPwInput').value;
-  if (val === ADMIN_PASSWORD) {
-    adminLoggedIn = true;
-    document.getElementById('adminLogin').style.display = 'none';
-    showAdminControls();
-  } else {
-    document.getElementById('adminPwError').style.display = 'block';
-  }
-}
-function adminLogout() {
-  adminLoggedIn = false;
-  document.getElementById('adminControls').style.display = 'none';
-  document.getElementById('adminLogin').style.display = '';
-  document.getElementById('adminPwInput').value = '';
-  document.getElementById('adminPwError').style.display = 'none';
-  closeAdmin();
-}
-
-function showAdminControls() {
-  document.getElementById('adminControls').style.display = '';
-  buildAdminRows('adminCoachRows', COACHES_META, coachState);
-  buildAdminRows('adminCampRows', CAMPS_META, campState);
-  buildSoldOutRows('adminSoldOutRows', CAMPS_META, soldOutState);
-}
-
-function buildSoldOutRows(containerId, meta, state) {
-  const container = document.getElementById(containerId);
-  container.innerHTML = '';
-  meta.forEach(item => {
-    const row = document.createElement('div');
-    row.className = 'admin-row';
-    const lbl = document.createElement('div');
-    lbl.innerHTML = `<div class="admin-row-label">${item.label}</div>${item.date ? `<div class="admin-row-sub">${item.date}</div>` : ''}`;
-    const btns = document.createElement('div');
-    btns.className = 'admin-toggle-group';
-    [['false','Places available'],['true','Sold out']].forEach(([val, label]) => {
-      const btn = document.createElement('button');
-      const isActive = String(state[item.id]) === val;
-      btn.className = 'admin-toggle' + (isActive ? (val==='true' ? ' active-soldout' : ' active-live') : '');
-      btn.textContent = label;
-      btn.onclick = () => {
-        state[item.id] = val === 'true';
-        btns.querySelectorAll('.admin-toggle').forEach(b => b.className = 'admin-toggle');
-        btn.className = 'admin-toggle ' + (val==='true' ? 'active-soldout' : 'active-live');
-      };
-      btns.appendChild(btn);
-    });
-    row.appendChild(lbl);
-    row.appendChild(btns);
-    container.appendChild(row);
-  });
-}
-
-function buildAdminRows(containerId, meta, state) {
-  const container = document.getElementById(containerId);
-  container.innerHTML = '';
-  meta.forEach(item => {
-    const row = document.createElement('div');
-    row.className = 'admin-row';
-    const lbl = document.createElement('div');
-    lbl.innerHTML = `<div class="admin-row-label">${item.label}</div>${item.date ? `<div class="admin-row-sub">${item.date}</div>` : ''}`;
-    const btns = document.createElement('div');
-    btns.className = 'admin-toggle-group';
-    [['live','Live'],['soon','Coming Soon'],['hidden','Hidden']].forEach(([val, label]) => {
-      const btn = document.createElement('button');
-      btn.className = 'admin-toggle' + (state[item.id] === val ? ' active-' + val : '');
-      btn.textContent = label;
-      btn.onclick = () => {
-        state[item.id] = val;
-        btns.querySelectorAll('.admin-toggle').forEach(b => b.className = 'admin-toggle');
-        btn.className = 'admin-toggle active-' + val;
-      };
-      btns.appendChild(btn);
-    });
-    row.appendChild(lbl);
-    row.appendChild(btns);
-    container.appendChild(row);
-  });
-}
-
-async function adminSave() {
-  const statusEl = document.getElementById('adminSaveStatus');
-  statusEl.textContent = 'Saving...';
-  const campRows = CAMPS_META.map(c => ({id: c.id, status: campState[c.id] || 'hidden'}));
-  const coachRows = COACHES_META.map(c => ({id: c.id, status: coachState[c.id] || 'hidden'}));
-  const soldOutRows = CAMPS_META.map(c => ({id: c.id, soldout: soldOutState[c.id] || false}));
-  const [ok1, ok2, ok3] = await Promise.all([
-    sbUpsert('camp_visibility', campRows),
-    sbUpsert('coach_visibility', coachRows),
-    sbUpsert('camp_soldout', soldOutRows)
-  ]);
-  if (ok1 && ok2 && ok3) {
-    statusEl.textContent = '✓ Published';
-    applyVisibility();
-    setTimeout(() => statusEl.textContent = '', 3000);
-  } else {
-    statusEl.textContent = '✗ Error saving — check Supabase setup';
-  }
-}
-
-// Load on page ready
-document.addEventListener('DOMContentLoaded', loadVisibility);
-</script>
-
-
-<script>
-// ── 1:1 SESSIONS ──
-let otCurrentSession = null;
-
-async function loadOTSessions() {
-  try {
-    const rows = await sbGet('session_bookings');
-    if (!rows) return;
-    rows.forEach(r => {
-      if (r.booked) markSessionFull(r.id);
-    });
-  } catch(e) {}
-}
-
-function markSessionFull(sessionId) {
-  const card = document.querySelector(`[data-session-id="${sessionId}"]`);
-  if (!card) return;
-  card.classList.add('full');
-  const btn = card.querySelector('.btn-onetone-book');
-  if (btn) {
-    const fullBtn = document.createElement('div');
-    fullBtn.className = 'btn-onetone-full';
-    fullBtn.textContent = 'Fully booked';
-    btn.replaceWith(fullBtn);
-  }
-}
-
-function openOTBooking(sessionId, coachName, sessionLabel) {
-  otCurrentSession = sessionId;
-  document.getElementById('otSessionLabel').innerHTML =
-    '<strong>' + coachName + '</strong><br>' + sessionLabel;
-  document.getElementById('otForm').style.display = '';
-  document.getElementById('otSuccess').style.display = 'none';
-  ['ot-pfirst','ot-plast','ot-email','ot-phone','ot-afirst','ot-alast','ot-club','ot-medical'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.value = '';
-  });
-  const cb = document.getElementById('ot-consent');
-  if(cb) cb.checked = false;
-  document.getElementById('otModal').classList.add('open');
-}
-
-function closeOTModal() {
-  document.getElementById('otModal').classList.remove('open');
-}
-
-async function submitOTBooking() {
-  if (!document.getElementById('ot-consent').checked) {
-    alert('Please confirm the booking declaration.'); return;
-  }
-  const req = ['ot-pfirst','ot-plast','ot-email','ot-phone','ot-afirst','ot-alast','ot-dob','ot-club'];
-  for (const id of req) {
-    const el = document.getElementById(id);
-    if (!el || !el.value.trim()) { el && el.focus(); alert('Please complete all required fields.'); return; }
-  }
-  const email = document.getElementById('ot-email').value.trim();
-  const sessionLabel = document.getElementById('otSessionLabel').textContent;
-
-  const payload = {
-    _subject: '1:1 Session Booking — ' + document.getElementById('ot-afirst').value + ' ' + document.getElementById('ot-alast').value,
-    session: sessionLabel,
-    session_id: otCurrentSession,
-    parent_name: document.getElementById('ot-pfirst').value + ' ' + document.getElementById('ot-plast').value,
-    parent_email: email,
-    parent_phone: document.getElementById('ot-phone').value,
-    athlete_name: document.getElementById('ot-afirst').value + ' ' + document.getElementById('ot-alast').value,
-    athlete_dob: document.getElementById('ot-dob').value,
-    club: document.getElementById('ot-club').value,
-    medical: document.getElementById('ot-medical').value,
-  };
-
-  // Web3Forms — email notification
-  fetch('https://api.web3forms.com/submit', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-    body: JSON.stringify({access_key: '7223be0c-e223-4f83-bc5d-f7aa0fea1073', ...payload})
-  }).catch(() => {});
-
-  // Google Sheets — log 1:1 booking
-  const otSheetPayload = {
-    type: '1:1',
-    session: payload.session,
-    session_id: otCurrentSession,
-    athlete_first: document.getElementById('ot-afirst').value.trim(),
-    athlete_last:  document.getElementById('ot-alast').value.trim(),
-    athlete_dob:   document.getElementById('ot-dob').value,
-    club:          document.getElementById('ot-club').value.trim(),
-    parent_first:  document.getElementById('ot-pfirst').value.trim(),
-    parent_last:   document.getElementById('ot-plast').value.trim(),
-    parent_email:  email,
-    parent_phone:  document.getElementById('ot-phone').value.trim(),
-    medical:       document.getElementById('ot-medical').value.trim(),
-  };
-  fetch('https://script.google.com/macros/s/AKfycbzoK1o3Bra7kmK7PanJpFtYhbca3FmCjZInM1ljQu2ym3vhmV0RFFlutWYU9L6-aeMH/exec', {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(otSheetPayload)}).catch(()=>{});
-
-  // Mark session as booked in Supabase
-  try {
-    const res = await fetch(`${SB_URL}/rest/v1/session_bookings`, {
-      method: 'POST',
-      headers: {
-        'apikey': SB_KEY,
-        'Authorization': 'Bearer ' + SB_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=minimal'
-      },
-      body: JSON.stringify([{id: otCurrentSession, booked: true, email: email, session: sessionLabel}])
-    });
-    if (!res.ok) {
-      const err = await res.text();
-      console.error('Supabase session_bookings error:', res.status, err);
-    }
-    markSessionFull(otCurrentSession);
-  } catch(e) {
-    console.error('Session booking error:', e);
-    markSessionFull(otCurrentSession); // still mark on client even if DB fails
-  }
-
-  document.getElementById('ot-confirm-email').textContent = email;
-  document.getElementById('otForm').style.display = 'none';
-  document.getElementById('otSuccess').style.display = 'block';
-}
-
-document.getElementById('otModal').addEventListener('click', function(e) {
-  if (e.target === this) closeOTModal();
-});
-
-// Load 1:1 session status on page ready
-document.addEventListener('DOMContentLoaded', loadOTSessions);
-</script>
-
+<script src="lb-app.js?v=25"></script>
 </body>
 </html>
