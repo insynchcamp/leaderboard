@@ -89,6 +89,15 @@ const ACCESSORIES = [
   {id:'wayfarers',      label:'Wayfarers'},
 ];
 
+const FACIAL_HAIR = [
+  {id:'blank',            label:'None'},
+  {id:'beardLight',       label:'Light Beard'},
+  {id:'beardMedium',      label:'Medium Beard'},
+  {id:'beardMajestic',    label:'Full Beard'},
+  {id:'moustacheFancy',   label:'Fancy Moustache'},
+  {id:'moustacheMagnum',  label:'Moustache'},
+];
+
 const CLOTHING_COLORS = [
   {id:'black',     hex:'262E33'},
   {id:'blue03',    hex:'65C9FF'},
@@ -108,6 +117,7 @@ const DEFAULT_AVATAR = {
   hairStyle: 'straight01',
   expression: 'happy',
   accessory: 'blank',
+  facialHair: 'blank',
   clothingColor: 'electricPurple',
   logoChoice: 'insynch',  // 'insynch' or 'club'
 };
@@ -122,6 +132,7 @@ let athletesLoaded = false;
 let badgesLoaded = false;
 let unsubAthletes = null, unsubBadges = null;
 let curAvatarDraft = {...DEFAULT_AVATAR};
+let avatarEditTargetUid = null; // set when admin is editing another athlete's avatar
 let curAdminTab = 'manual';
 let csvParsedData = null;
 
@@ -427,6 +438,8 @@ function buildAvatarUrl(av){
   const hairStyle = hairStyleObj ? hairStyleObj.id : DEFAULT_AVATAR.hairStyle;
   const accessoryObj = ACCESSORIES.find(a=>a.id===av.accessory);
   const accessory = accessoryObj ? accessoryObj.id : DEFAULT_AVATAR.accessory;
+  const facialHairObj = FACIAL_HAIR.find(f=>f.id===av.facialHair);
+  const facialHair = facialHairObj ? facialHairObj.id : DEFAULT_AVATAR.facialHair;
 
   const params = new URLSearchParams();
   params.set('seed', 'static');
@@ -450,7 +463,13 @@ function buildAvatarUrl(av){
     params.set('accessories', accessory);
     params.set('accessoriesProbability', '100');
   }
-  params.set('facialHairProbability', '0');
+  if(facialHair && facialHair !== 'blank'){
+    params.set('facialHair', facialHair);
+    params.set('facialHairProbability', '100');
+    params.set('facialHairColor', hairColorObj.hex);
+  } else {
+    params.set('facialHairProbability', '0');
+  }
   params.set('backgroundColor', 'transparent');
 
   return DICEBEAR_BASE + '?' + params.toString();
@@ -871,6 +890,51 @@ function renderLeaderboard(){
 // ═══════════════════════════════════════════════════════════════
 // PROFILE / AVATAR PAGE
 // ═══════════════════════════════════════════════════════════════
+function avatarBuilderMarkup(saveLabel){
+  return `
+    <div class="avatar-builder">
+      <div class="avatar-preview-pane">
+        <div class="avatar-preview-circle" id="avatarPreviewCircle">${renderAvatarSVG(curAvatarDraft, 192)}</div>
+        <button class="btn-save-avatar" onclick="saveAvatar()">${saveLabel||'💾 Save Avatar'}</button>
+      </div>
+      <div class="avatar-options">
+        <div class="avatar-option-group">
+          <h4>Sweatshirt Logo</h4>
+          <div class="logo-choice-row" id="logoChoiceRow"></div>
+        </div>
+        <div class="avatar-option-group">
+          <h4>Sweatshirt Colour</h4>
+          <div class="swatch-row" id="clothingColorSwatches"></div>
+        </div>
+        <div class="avatar-option-group">
+          <h4>Hair Style</h4>
+          <div class="option-tile-row" id="hairStyleTiles"></div>
+        </div>
+        <div class="avatar-option-group">
+          <h4>Hair Colour</h4>
+          <div class="swatch-row" id="hairColorSwatches"></div>
+        </div>
+        <div class="avatar-option-group">
+          <h4>Skin Tone</h4>
+          <div class="swatch-row" id="skinSwatches"></div>
+        </div>
+        <div class="avatar-option-group">
+          <h4>Expression</h4>
+          <div class="option-tile-row" id="expressionTiles"></div>
+        </div>
+        <div class="avatar-option-group">
+          <h4>Facial Hair</h4>
+          <div class="option-tile-row" id="facialHairTiles"></div>
+        </div>
+        <div class="avatar-option-group">
+          <h4>Accessory</h4>
+          <div class="option-tile-row" id="accessoryTiles"></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 async function renderProfilePage(){
   if(isAdmin) return;
   const wrap = document.getElementById('profileContent');
@@ -879,6 +943,7 @@ async function renderProfilePage(){
   curAvatarDraft = {...DEFAULT_AVATAR, ...(profile.avatar||{})};
   curAvatarDraft._clubName = profile.club || '';
   curAvatarDraft._clubLogoUrl = getClubLogo(profile.club);
+  avatarEditTargetUid = null;
   const badgeCount = badges[CU.uid] || 0;
   const lvl = getLevel(badgeCount);
   const nextLvl = getNextLevel(badgeCount);
@@ -912,42 +977,7 @@ async function renderProfilePage(){
 
     <div class="lb-section">
       <div class="lb-section-hdr"><span class="emoji">😎</span><h2>Customise Your Avatar</h2></div>
-      <div class="avatar-builder">
-        <div class="avatar-preview-pane">
-          <div class="avatar-preview-circle" id="avatarPreviewCircle">${renderAvatarSVG(curAvatarDraft, 192)}</div>
-          <button class="btn-save-avatar" onclick="saveAvatar()">💾 Save Avatar</button>
-        </div>
-        <div class="avatar-options">
-          <div class="avatar-option-group">
-            <h4>Sweatshirt Logo</h4>
-            <div class="logo-choice-row" id="logoChoiceRow"></div>
-          </div>
-          <div class="avatar-option-group">
-            <h4>Sweatshirt Colour</h4>
-            <div class="swatch-row" id="clothingColorSwatches"></div>
-          </div>
-          <div class="avatar-option-group">
-            <h4>Hair Style</h4>
-            <div class="option-tile-row" id="hairStyleTiles"></div>
-          </div>
-          <div class="avatar-option-group">
-            <h4>Hair Colour</h4>
-            <div class="swatch-row" id="hairColorSwatches"></div>
-          </div>
-          <div class="avatar-option-group">
-            <h4>Skin Tone</h4>
-            <div class="swatch-row" id="skinSwatches"></div>
-          </div>
-          <div class="avatar-option-group">
-            <h4>Expression</h4>
-            <div class="option-tile-row" id="expressionTiles"></div>
-          </div>
-          <div class="avatar-option-group">
-            <h4>Accessory</h4>
-            <div class="option-tile-row" id="accessoryTiles"></div>
-          </div>
-        </div>
-      </div>
+      ${avatarBuilderMarkup()}
     </div>
   `;
 
@@ -1004,6 +1034,18 @@ function buildAvatarOptionPickers(){
     </div>`;
   }).join('');
 
+  // Facial hair — mini avatar previews
+  const facialHairEl = document.getElementById('facialHairTiles');
+  if(facialHairEl) facialHairEl.innerHTML = FACIAL_HAIR.map(f=>{
+    const url = miniAvatarPreviewUrl({facialHair:f.id});
+    return `<div class="option-tile" title="${f.label}">
+      <div class="option-tile-inner avatar-mini-tile ${curAvatarDraft.facialHair===f.id?'selected':''}" onclick="updateAvatarField('facialHair','${f.id}')">
+        <img src="${url}" loading="lazy" alt="">
+      </div>
+      <div class="option-tile-label">${f.label}</div>
+    </div>`;
+  }).join('');
+
   // Sweatshirt colour swatches
   const clothEl = document.getElementById('clothingColorSwatches');
   if(clothEl) clothEl.innerHTML = CLOTHING_COLORS.map(c=>`<div class="swatch ${curAvatarDraft.clothingColor===c.id?'selected':''}" style="background:#${c.hex};border:${c.hex==='FFFFFF'?'2px solid #ccc':'3px solid transparent'}" onclick="updateAvatarField('clothingColor','${c.id}')" title="${c.id}"></div>`).join('');
@@ -1031,16 +1073,44 @@ function updateAvatarField(field, value){
   buildAvatarOptionPickers();
 }
 
+async function openAdminAvatarEditor(uid, name){
+  const snap = await dbGet('lb_users/'+uid);
+  const profile = snap.val() || {};
+  curAvatarDraft = {...DEFAULT_AVATAR, ...(profile.avatar||{})};
+  curAvatarDraft._clubName = profile.club || '';
+  curAvatarDraft._clubLogoUrl = getClubLogo(profile.club);
+  avatarEditTargetUid = uid;
+
+  const modalEl = document.getElementById('avatarEditModal');
+  modalEl.querySelector('.modal').innerHTML = `
+    <button class="modal-close-btn" onclick="closeModal('avatarEditModal')">&times;</button>
+    <h2 style="margin-bottom:14px;">😎 Edit ${esc(name)}'s Avatar</h2>
+    ${avatarBuilderMarkup('💾 Save Avatar for ' + esc(name))}
+  `;
+  openModal('avatarEditModal');
+  buildAvatarOptionPickers();
+}
+
 async function saveAvatar(){
-  if(!CU || isAdmin) return;
+  const targetUid = avatarEditTargetUid || (CU && !isAdmin ? CU.uid : null);
+  if(!targetUid) return;
   // Strip internal club-context fields before saving — they're derived at render time
   const { _clubName, _clubLogoUrl, ...avatarToSave } = curAvatarDraft;
-  await dbUpd('lb_users/'+CU.uid, {avatar: avatarToSave});
-  document.getElementById('userChipAvatar').innerHTML = renderAvatarSVG(curAvatarDraft, 26);
+  await dbUpd('lb_users/'+targetUid, {avatar: avatarToSave});
   const btn = document.querySelector('.btn-save-avatar');
   const orig = btn.textContent;
   btn.textContent = '✅ Saved!';
-  setTimeout(()=>{btn.textContent=orig;}, 1800);
+  if(avatarEditTargetUid){
+    // Admin editing someone else's avatar — close the modal shortly after saving
+    setTimeout(()=>{
+      closeModal('avatarEditModal');
+      avatarEditTargetUid = null;
+      btn.textContent = orig;
+    }, 900);
+  } else {
+    document.getElementById('userChipAvatar').innerHTML = renderAvatarSVG(curAvatarDraft, 26);
+    setTimeout(()=>{btn.textContent=orig;}, 1800);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1192,6 +1262,7 @@ function renderAdminTabContent(){
           <input type="text" class="club-input" id="club_${a.uid}" value="${esc(a.club||'')}" list="clubNamesList" placeholder="Club" style="width:130px;background:rgba(255,255,255,0.06);border:2px solid var(--border);border-radius:9px;color:#fff;font-family:'Fredoka',sans-serif;font-size:12px;padding:6px 9px;outline:none;">
           <button title="Save club" class="btn-mini-save" style="padding:6px 10px;font-size:12px;" onclick="saveAthleteClub('${a.uid}','${esc(a.name).replace(/'/g,"\\'")}')">💾</button>
           <div style="font-weight:700;color:var(--gold)">🌟 ${a.badgeCount}</div>
+          <button title="Edit avatar" style="background:rgba(155,48,255,0.12);border:1px solid rgba(155,48,255,0.3);color:#c084fc;border-radius:8px;padding:6px 10px;font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;cursor:pointer;margin-left:8px;" onclick="openAdminAvatarEditor('${a.uid}','${esc(a.name).replace(/'/g,"\\'")}')">😎</button>
           <button title="Delete account" style="background:rgba(224,92,58,0.12);border:1px solid rgba(224,92,58,0.3);color:#ff8c74;border-radius:8px;padding:6px 10px;font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;cursor:pointer;margin-left:8px;" onclick="confirmDeleteAthlete('${a.uid}','${esc(a.name).replace(/'/g,"\\'")}','${esc(a.email).replace(/'/g,"\\'")}')">🗑️</button>
         </div>
       `).join('') : `<div class="empty-st"><div class="emoji">🏊‍♀️</div><p>No athletes yet.</p></div>`}
