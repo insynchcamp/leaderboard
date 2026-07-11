@@ -1839,7 +1839,7 @@ async function openAthleteDetail(uid){
   // Fetch camp entries for this athlete
   const snap = await dbGet('lb_camp_entries/'+uid);
   const entriesObj = snap.val() || {};
-  const entries = Object.values(entriesObj).sort((x,y)=> new Date(x.date) - new Date(y.date));
+  const entries = Object.values(entriesObj).sort((x,y)=> (parseUKDate(x.date)?.getTime()||0) - (parseUKDate(y.date)?.getTime()||0));
 
   const campListHtml = entries.length ? entries.map(e=>`
     <div class="camp-entry-row">
@@ -1895,10 +1895,30 @@ async function openAthleteDetail(uid){
   openModal('athleteDetailModal');
 }
 
+// Parses a date string as UK short date (DD/MM/YYYY), which is what coaches type in.
+// JS's native `new Date("07/08/2026")` assumes US format (MM/DD/YYYY) and would
+// silently read that as 7 August as 8 July instead — this avoids that trap.
+// Falls back to native parsing for other formats (e.g. ISO "2026-08-07").
+function parseUKDate(dateStr){
+  if(!dateStr) return null;
+  const s = String(dateStr).trim();
+  const m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if(m){
+    let day = parseInt(m[1],10), month = parseInt(m[2],10), year = parseInt(m[3],10);
+    if(year < 100) year += 2000;
+    if(month>=1 && month<=12 && day>=1 && day<=31){
+      const d = new Date(year, month-1, day);
+      if(!isNaN(d.getTime())) return d;
+    }
+  }
+  const fallback = new Date(s);
+  return isNaN(fallback.getTime()) ? null : fallback;
+}
+
 function formatCampDate(dateStr){
   if(!dateStr) return '';
-  const d = new Date(dateStr);
-  if(isNaN(d.getTime())) return dateStr; // fall back to raw string if unparsable
+  const d = parseUKDate(dateStr);
+  if(!d) return dateStr; // fall back to raw string if unparsable
   return d.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
 }
 
