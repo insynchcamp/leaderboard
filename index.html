@@ -24,10 +24,18 @@
   window._fbFns = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, updatePassword, sendPasswordResetEmail, ref, set, get, onValue, update };
   onAuthStateChanged(auth, async (user) => {
     if (user) {
-      const snap = await get(ref(db, 'lb_users/' + user.uid));
-      const profile = snap.val() || {};
-      window._currentUser = { uid: user.uid, email: user.email, name: profile.name || user.displayName || user.email, role: profile.role || 'athlete', club: profile.club || '' };
-      window.onFirebaseLogin(window._currentUser);
+      try {
+        const snap = await get(ref(db, 'lb_users/' + user.uid));
+        const profile = snap.val() || {};
+        window._currentUser = { uid: user.uid, email: user.email, name: profile.name || user.displayName || user.email, role: profile.role || 'athlete', club: profile.club || '' };
+        window.onFirebaseLogin(window._currentUser);
+      } catch (ex) {
+        // If the profile read fails (e.g. a database permissions issue), don't leave
+        // the app stuck on the loading screen forever — fall back to public/logged-out mode.
+        console.error('Failed to load user profile:', ex);
+        window._currentUser = null;
+        window.onFirebaseLogout();
+      }
     } else {
       window._currentUser = null;
       window.onFirebaseLogout();
@@ -607,6 +615,6 @@ h1,h2,h3,h4{font-family:'Fredoka',sans-serif;}
   <div class="modal" style="max-width:660px;"></div>
 </div>
 
-<script src="lb-app.js?v=30"></script>
+<script src="lb-app.js?v=31"></script>
 </body>
 </html>

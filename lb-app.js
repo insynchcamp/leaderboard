@@ -130,6 +130,7 @@ let athletes = {}; // uid -> {name, club, email, role, avatar}
 let badges = {}; // uid -> count
 let athletesLoaded = false;
 let badgesLoaded = false;
+let dataLoadError = null;
 let unsubAthletes = null, unsubBadges = null;
 let curAvatarDraft = {...DEFAULT_AVATAR};
 let avatarEditTargetUid = null; // set when admin is editing another athlete's avatar
@@ -140,7 +141,13 @@ function dbRef(p){return window._fbFns.ref(window._db,p);}
 function dbSet(p,v){return window._fbFns.set(dbRef(p),v);}
 function dbUpd(p,v){return window._fbFns.update(dbRef(p),v);}
 function dbGet(p){return window._fbFns.get(dbRef(p));}
-function dbOn(p,cb){return window._fbFns.onValue(dbRef(p),s=>cb(s.val()));}
+function dbOn(p,cb){
+  return window._fbFns.onValue(dbRef(p), s=>cb(s.val()), err=>{
+    console.error('Database read failed for "'+p+'":', err);
+    dataLoadError = err && err.message ? err.message : 'Permission denied';
+    renderCurrentPage();
+  });
+}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 // Privacy: show "First L." publicly instead of full surname (these are minors)
@@ -781,6 +788,12 @@ function getClubRankings(){
 function renderLeaderboard(){
   const wrap = document.getElementById('leaderboardContent');
   const ranked = getRankedAthletes();
+
+  if(dataLoadError){
+    wrap.innerHTML = `<div class="lb-hero"><h1>🏆 In Synch <span class="accent">2026</span> Leaderboard</h1></div>
+      <div class="empty-st"><div class="emoji">⚠️</div><p>Couldn't load leaderboard data (${esc(dataLoadError)}).<br>This usually means the database needs its access rules updated — please contact the site admin.</p></div>`;
+    return;
+  }
 
   if(!ranked.length){
     wrap.innerHTML = `<div class="lb-hero"><h1>🏆 In Synch <span class="accent">2026</span> Leaderboard</h1><p>Track your progress, unlock rewards, and climb the rankings</p></div>
