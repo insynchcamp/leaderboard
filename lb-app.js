@@ -1198,7 +1198,7 @@ function renderAdminTabContent(){
   else if(curAdminTab === 'import'){
     el.innerHTML = `<div class="lb-section">
       <div class="lb-section-hdr"><h2>Import Athletes &amp; Camp Records</h2></div>
-      <p style="font-size:12px;color:var(--ink-dim);margin-bottom:14px;line-height:1.6;">Upload a CSV with one row per camp attended. Columns: <strong>Name</strong>, <strong>Club</strong>, <strong>Country</strong>, <strong>Club Website</strong>, <strong>Email</strong>, <strong>Camp Date</strong>, <strong>Camp Name</strong>, <strong>Badges</strong>. If an athlete attended multiple camps, give them multiple rows with the same name &amp; email — their badges will total up automatically and each camp will show in their detail view. New accounts use the temporary password <strong style="color:var(--teal)">${TEMP_PASSWORD}</strong> and are asked to set their own password on first login. Re-uploading for an existing athlete will only add camps they don't already have on record (matched by camp name) — already-recorded camps and their badges won't be duplicated.</p>
+      <p style="font-size:12px;color:var(--ink-dim);margin-bottom:14px;line-height:1.6;">Upload a CSV with one row per camp attended. Columns: <strong>Name</strong>, <strong>Club</strong>, <strong>Country</strong>, <strong>Club Website</strong>, <strong>Email</strong>, <strong>Camp Date</strong>, <strong>Camp Name</strong>, <strong>Badges</strong>. If an athlete attended multiple camps, give them multiple rows with the same name &amp; email — their badges will total up automatically and each camp will show in their detail view. New accounts use the temporary password <strong style="color:var(--teal)">${TEMP_PASSWORD}</strong> and are asked to set their own password on first login. Re-uploading for an existing athlete replaces their camp history and badge count entirely with what's in this file — so make sure each upload contains their full, up-to-date record, not just new camps to add.</p>
       <div class="upload-drop" id="athleteCsvDrop" onclick="document.getElementById('athleteCsvFileInput').click()" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="handleAthleteCsvDrop(event)">
         <p>📄 Click to upload or drag & drop your CSV</p>
         <small>Columns: Name, Club, Country, Club Website, Email, Camp Date, Camp Name, Badges</small>
@@ -1756,7 +1756,7 @@ function renderAthleteCsvPreview(){
   el.innerHTML = `
     <p style="font-size:12px;color:var(--ink-dim);margin:14px 0 6px;font-weight:700;">
       ${newCount} new account${newCount!==1?'s':''} to create
-      ${existingCount ? `&middot; ${existingCount} already exist (only camps not already on their record will be added)` : ''}
+      ${existingCount ? `&middot; ${existingCount} already exist (their camp history &amp; badges will be replaced with this file)` : ''}
     </p>
     <div style="overflow-x:auto">
       <table class="csv-preview-table">
@@ -1776,7 +1776,7 @@ function renderAthleteCsvPreview(){
         </tbody>
       </table>
     </div>
-    <p style="font-size:11px;color:var(--ink-faint);margin-top:12px;">New accounts use the temporary password <strong style="color:var(--teal)">${TEMP_PASSWORD}</strong> and will be asked to set their own password on first login. Existing athletes will only have camps added that aren't already on their record — camps matching an existing name &amp; date won't be duplicated.</p>
+    <p style="font-size:11px;color:var(--ink-faint);margin-top:12px;">New accounts use the temporary password <strong style="color:var(--teal)">${TEMP_PASSWORD}</strong> and will be asked to set their own password on first login. <strong>For existing athletes, this file will fully replace their current camp history and badge count</strong> — it won't be merged with what's already there.</p>
     <button class="btn-save-avatar" style="margin-top:10px;max-width:340px;" id="btnRunAthleteImport" onclick="runAthleteImport()">Import ${athleteCsvData.length} Athlete${athleteCsvData.length!==1?'s':''}</button>
     <div id="athleteImportStatus" style="margin-top:10px;font-size:12px;font-weight:700;"></div>
   `;
@@ -1791,20 +1791,14 @@ async function runAthleteImport(){
   let processed = 0, failed = [];
   const total = athleteCsvData.length;
 
-  let duplicatesSkipped = 0;
-
   for(const row of athleteCsvData){
     try{
       let uid;
-      let existingEntries = {};
       if(row.alreadyExists){
         // Find existing athlete by email
         const existing = Object.entries(athletes).find(([,a])=>(a.email||'').toLowerCase()===row.email.toLowerCase());
         uid = existing ? existing[0] : null;
         if(!uid){ failed.push(row.name + ' (could not find existing account)'); continue; }
-        // Pull their current camp entries so we can skip camps they already have on record
-        const entriesSnap = await dbGet('lb_camp_entries/'+uid);
-        existingEntries = entriesSnap.val() || {};
       } else {
         // Create new account
         const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key='+window._auth.app.options.apiKey, {
@@ -1820,30 +1814,18 @@ async function runAthleteImport(){
         });
       }
 
-      // Work out which camp rows are genuinely new for this athlete (skip ones already on record)
-      const existingSignatures = new Set(Object.values(existingEntries).map(campEntrySignature));
-      const newCampEntries = row.campEntries.filter(entry => !existingSignatures.has(campEntrySignature(entry)));
-      const skippedThisRow = row.campEntries.length - newCampEntries.length;
-      duplicatesSkipped += skippedThisRow;
+      // This CSV is treated as the complete, authoritative camp record for this athlete —
+      // wipe out whatever was there before and replace it with exactly what's in this upload,
+      // rather than merging with or adding to previous uploads.
+      const newEntries = {};
+      row.campEntries.forEach(entry=>{
+        const entryId = 'entry_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+        newEntries[entryId] = { ...entry, addedAt: Date.now() };
+      });
+      await dbSet('lb_camp_entries/'+uid, Object.keys(newEntries).length ? newEntries : null);
 
-      // Add only the new camp entries (each gets a unique key)
-      if(newCampEntries.length){
-        const entryUpdates = {};
-        newCampEntries.forEach(entry=>{
-          const entryId = 'entry_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
-          entryUpdates[entryId] = { ...entry, addedAt: Date.now() };
-        });
-        await dbUpd('lb_camp_entries/'+uid, entryUpdates);
-      }
-
-      // Only count badges for camp rows we actually added, plus any badge amount that
-      // wasn't tied to a specific camp (rows with no camp name/date, which can't be deduped).
-      const badgeLessTotal = row.totalBadges - row.campEntries.reduce((s,e)=>s+(e.badges||0),0);
-      const newBadges = newCampEntries.reduce((s,e)=>s+(e.badges||0),0) + badgeLessTotal;
-
-      // Increment total badge count (existing + new from this import)
-      const curBadges = badges[uid] || 0;
-      await dbSet('lb_badges/'+uid, curBadges + newBadges);
+      // Badge count is also fully replaced with this row's total, not added on top of what existed.
+      await dbSet('lb_badges/'+uid, row.totalBadges);
 
       // Save club website if provided
       if(row.website && row.club){
@@ -1860,8 +1842,7 @@ async function runAthleteImport(){
     }
   }
 
-  statusEl.innerHTML = `✅ Successfully processed ${processed} athlete${processed!==1?'s':''}.` +
-    (duplicatesSkipped ? `<br>↩️ Skipped ${duplicatesSkipped} camp${duplicatesSkipped!==1?'s':''} already on record (no duplicate badges added).` : '') +
+  statusEl.innerHTML = `✅ Successfully processed ${processed} athlete${processed!==1?'s':''}. Their camp history and badges now exactly match this file.` +
     (failed.length ? `<br>⚠️ ${failed.length} failed: ${failed.join(', ')}` : '');
   btn.textContent = 'Done!';
   athleteCsvData = null;
